@@ -15,7 +15,13 @@ final class CSV(filePath: String) extends CSVProtocol {
     Content(data)
   }
 
-  override val headers: List[Header] = content.data.takeWhile(_ != '\n').split(",").map(Header.apply).toList
+  override val headers: List[Header] =
+    content
+      .data
+      .takeWhile(_ != '\n')
+      .split(",")
+      .map(Header.apply)
+      .toList
 
   override val rows: Rows =
     Rows(content
@@ -27,7 +33,10 @@ final class CSV(filePath: String) extends CSVProtocol {
       .map(_.split(",").toList.map(Cell.apply))
       .map(Row.apply))
 
-  override val headerPlaceMapping: Map[Header, Int] = headers.zipWithIndex.toMap
+  override val headerPlaceMapping: Map[Header, Int] =
+    headers
+      .zipWithIndex
+      .toMap
 
   override def column(name: String): Option[Column] = {
     if (!headers.map(_.value).contains(name)) None
