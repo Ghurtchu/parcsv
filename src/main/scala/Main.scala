@@ -25,4 +25,16 @@ object Main extends scala.App {
     case _ =>
   }
 
+  val csvMap =
+    Map(
+      "band" -> ("necrophagist" :: "dying fetus" :: Nil),
+      "genre" -> ("tech death" :: "brutal death" :: Nil),
+      "lead" -> ("Muammed Suicmez" :: "John Gallagher" :: Nil)
+    )
+
+  CSV.fromMap(csvMap) match {
+    case Right(value) => println(value)
+    case Left(_) =>
+  }
+
 }
