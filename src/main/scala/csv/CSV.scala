@@ -53,7 +53,7 @@ final class CSV(filePath: String) extends CSVProtocol {
 
   override def slice(rowRange: Range, colRange: Range): List[List[String]] = ???
 
-  override val toString: String = {
+  override def toString: String = {
     val maxLengths = headers.map(_.value).map { header =>
       val col = column(header).get
 
@@ -78,7 +78,7 @@ final class CSV(filePath: String) extends CSVProtocol {
         val length = lengths(i)
 
         cell + " " * (length - cell.length) + " | "
-      }).reduce((a, b) => a concat b)
+      }).reduce(_ concat _)
     }).reduce((row1, row2) => row1 concat "\n" concat row2)
 
 
