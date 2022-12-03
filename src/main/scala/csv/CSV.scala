@@ -33,7 +33,7 @@ final class CSV(filePath: String) extends CSVProtocol {
       .map(_.split(",").toList.map(Cell.apply))
       .map(Row.apply))
 
-  override val headerPlaceMapping: Map[Header, Int] =
+  protected override val headerPlaceMapping: Map[Header, Int] =
     headers
       .zipWithIndex
       .toMap

@@ -9,12 +9,12 @@ private[csv] trait CSVProtocol {
 
   def rows: Rows
 
-  def headerPlaceMapping: Map[Header, Int]
-
   def column(name: String): Option[Column]
 
   def at(rowIndex: Int, colIndex: Int): Option[Cell]
 
   def slice(rowRange: Range, colRange: Range): List[List[String]]
+
+  protected def headerPlaceMapping: Map[Header, Int]
 
 }
