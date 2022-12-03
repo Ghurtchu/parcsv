@@ -3,8 +3,6 @@ package csv.api
 
 private[csv] trait CSVProtocol {
 
-  import CSVProtocol._
-
   def content: Content
 
   def headers: List[Header]
@@ -18,4 +16,5 @@ private[csv] trait CSVProtocol {
   def at(rowIndex: Int, colIndex: Int): Option[Cell]
 
   def slice(rowRange: Range, colRange: Range): List[List[String]]
+
 }
