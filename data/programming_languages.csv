@@ -1,0 +1,6 @@
+name, paradigm, creator, popularity
+Scala, object-functional, Martin Odersky, Moderate
+Java, object-oriented, James Gosling, High
+Python, object-oriented, Guido van Rossum, High
+JavaScript, nobody knows :), Brendan Eich, High
+C#, object-oriented, Anders Hejlsberg, High
