@@ -13,5 +13,16 @@ object Main extends scala.App {
     case _ =>
   }
 
+  val csvString =
+    """name,age,occupation
+      |nika,23,software developer
+      |toko,21,journalist
+      |gio,18,student
+      |""".stripMargin
+
+  CSV.fromString(csvString) match {
+    case Right(value) => println(value)
+    case _ =>
+  }
 
 }

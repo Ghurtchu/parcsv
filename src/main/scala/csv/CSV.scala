@@ -63,26 +63,37 @@ object CSV {
   import scala.util._
   import scala.io.Source.{fromFile => read}
 
+  def fromString(csv: String): Either[Throwable, CSV] = Try {
+    val headers = extractHeaders(csv)
+    val rows = extractRows(csv)
+
+    new CSV(headers, rows)
+  }.toEither
+
   def fromFile(path: String): Either[Throwable, CSV] = Try {
     val file = read(path)
-    val data = file.mkString
+    val csv = file.mkString
     file.close()
 
-    val headers = data.takeWhile(_ != '\n')
+    val headers = extractHeaders(csv)
+    val rows = extractRows(csv)
+
+    new CSV(headers, rows)
+  }.toEither
+
+  private def extractHeaders(csv: String): List[Header] =
+    csv.takeWhile(_ != '\n')
       .split(",")
       .map(Header.apply)
       .toList
 
-    val rows = data
-      .dropWhile(_ != '\n')
+  private def extractRows(csv: String): Rows =
+    Rows(csv.dropWhile(_ != '\n')
       .tail
       .split("\n")
       .toList
       .map(_.split(",").toList.map(Cell.apply))
-      .map(Row.apply)
-
-    new CSV(headers, Rows(rows))
-  }.toEither
+      .map(Row.apply))
 
 }
 
