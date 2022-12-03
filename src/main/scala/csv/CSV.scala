@@ -82,7 +82,7 @@ final class CSV(filePath: String) extends CSVProtocol {
     }).reduce((row1, row2) => row1 concat "\n" concat row2)
 
 
-    stringifiedHeaders concat "\n" concat "-" * stringifiedHeaders.length concat "\n" concat stringifiedRows
+    stringifiedHeaders concat "\n" concat "-" * (stringifiedHeaders.length - 1) concat "\n" concat stringifiedRows
   }
 }
 
