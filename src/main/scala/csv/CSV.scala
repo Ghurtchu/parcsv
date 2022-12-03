@@ -9,7 +9,7 @@ final class CSV(filePath: String) extends CSVProtocol {
 
   override lazy val content: Content = {
     val file = fromFile(filePath)
-    val data = file.mkString.replace(" ", "")
+    val data = file.mkString
     file.close()
 
     Content(data)
