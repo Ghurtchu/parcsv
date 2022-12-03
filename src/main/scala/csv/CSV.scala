@@ -83,13 +83,13 @@ object CSV {
 
   def fromMap(map: Map[String, List[String]]): Either[Throwable, CSV] = Try {
     val headers = map.keys.map(Header.apply).toList
-    val rowSize = map.head._2.size
     val rows = Rows {
-      (for (i <- 0 until rowSize) yield {
-        val rowStrings = map.values.map(cols => cols(i))
-
-        rowStrings.map(Cell.apply).toList
-      }).map(Row.apply).toList
+      (map.head._2.indices by 1).map { i =>
+        map.values
+          .map(cols => cols(i))
+          .map(Cell.apply)
+          .toList
+      }.map(Row.apply).toList
     }
 
     new CSV(headers, rows)
