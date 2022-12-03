@@ -4,12 +4,14 @@ import csv.CSV
 
 object Main extends scala.App {
 
-  val data = CSV("data/programming_languages.csv")
+  val csvFromFile = CSV.fromFile("data/programming_languages.csv")
 
   // Let's begin with simple task: display beautifully formatted CSV
-  data match {
+
+  csvFromFile match {
     case Right(csv) => println(csv)
     case _ =>
   }
+
 
 }

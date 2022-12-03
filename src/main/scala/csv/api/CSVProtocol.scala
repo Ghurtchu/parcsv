@@ -3,7 +3,7 @@ package csv.api
 
 private[csv] trait CSVProtocol {
 
-  def content: Content
+//  def content: Content
 
   def headers: List[Header]
 
