@@ -1,5 +1,5 @@
 package com.ghurtchu
-package csv.api
+package csv
 
 final case class CSV() {
 
