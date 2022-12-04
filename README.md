@@ -1,10 +1,10 @@
 Your favorite functional CSV library: parcsv
 
 Typical flow:
- - read CSV from file
- - choose specific columns or rows
- - print it
- - save new csv somewhere
+ - read CSV from different sources(file, string, map etc..)
+ - choose specific columns/rows, apply some filtering etc..
+ - display it to validate your intentions
+ - save new updated csv somewhere
 
 Scala code:
 ```scala
