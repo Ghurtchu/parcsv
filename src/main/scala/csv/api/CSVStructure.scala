@@ -1,6 +1,8 @@
 package com.ghurtchu
 package csv.api
 
+import csv._
+
 private[csv] trait CSVStructure {
 
   def headers: Headers
