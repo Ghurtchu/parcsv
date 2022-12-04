@@ -12,51 +12,55 @@ object Main extends scala.App {
 
   csvFromFile match {
     case Right(csv) => {
-      println(csv)
-      println(csv.headers)
-      println(csv.row(1))
 
-      csv.headers.values.map(_.value).foreach { colName =>
-        println(csv.column(colName))
-      }
+      val twoColumnCsv = for {
+        cols   <- csv.columns("popularity", "paradigm")
+        newCsv <- cols.toCSV
+      } yield newCsv
+
+      twoColumnCsv.fold(
+        _ => (),
+        println
+      )
 
       val wasSaved = csv.save("data/languages.csv")
       println(wasSaved)
+
     }
     case _ =>
   }
 
-  val csvString =
-    """name,age,occupation
-      |nika,23,software developer
-      |toko,21,journalist
-      |gio,18,student
-      |""".stripMargin
+//  val csvString =
+//    """name,age,occupation
+//      |nika,23,software developer
+//      |toko,21,journalist
+//      |gio,18,student
+//      |""".stripMargin
+//
+//  CSV.fromString(csvString) match {
+//    case Right(csv) => {
+//      println(csv)
+//      val wasSaved = csv.save("data/people.csv")
+//      println(wasSaved)
+//      println(csv.row(2))
+//    }
+//    case _ =>
+//  }
 
-  CSV.fromString(csvString) match {
-    case Right(csv) => {
-      println(csv)
-      val wasSaved = csv.save("data/people.csv")
-      println(wasSaved)
-      println(csv.row(2))
-    }
-    case _ =>
-  }
-
-  val csvMap =
-    Map(
-      "band" -> ("necrophagist" :: "dying fetus" :: "brain drill" :: Nil),
-      "genre" -> ("tech death" :: "brutal death" :: "chaotic tech death" :: Nil),
-      "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
-    )
-
-  CSV.fromMap(csvMap) match {
-    case Right(csv) => {
-      println(csv)
-      val wasSaved = csv.save("data/bands.csv")
-      println(wasSaved)
-    }
-    case Left(_) =>
-  }
+//  val csvMap =
+//    Map(
+//      "band" -> ("necrophagist" :: "dying fetus" :: "brain drill" :: Nil),
+//      "genre" -> ("tech death" :: "brutal death" :: "chaotic tech death" :: Nil),
+//      "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
+//    )
+//
+//  CSV.fromMap(csvMap) match {
+//    case Right(csv) => {
+//      println(csv)
+//      val wasSaved = csv.save("data/bands.csv")
+//      println(wasSaved)
+//    }
+//    case Left(_) =>
+//  }
 
 }

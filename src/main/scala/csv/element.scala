@@ -1,6 +1,8 @@
 package com.ghurtchu
 package csv
 
+import scala.util.Try
+
 object element {
 
   final case class Cell(value: String) {
@@ -77,6 +79,23 @@ object element {
 
   object Column {
     def empty: Column = new Column(Header.empty, Nil)
+  }
+
+  final case class Columns(values: List[Column]) {
+
+    def toCSV: Either[Throwable, CSV] = {
+      val headers = values.map(_.header)
+      val headerlessColumns = values drop 0
+      val rows = (headers.indices by 1).map { i =>
+        headerlessColumns.map { col =>
+          val cell = col.cells(i)
+
+          cell
+        }
+      }.map(Row.apply).toList
+
+      CSV.fromHeadersAndRows(Headers(headers), Rows(rows))
+    }
   }
 
 }

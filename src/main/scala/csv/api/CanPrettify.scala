@@ -1,6 +1,6 @@
 package com.ghurtchu
 package csv.api
 
-trait CanPrettify {
+private[csv] trait CanPrettify {
   def prettify: String
 }

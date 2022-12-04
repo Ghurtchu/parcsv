@@ -1,7 +1,7 @@
 package com.ghurtchu
 package csv.api
 
-private[csv] trait CSVOperations extends CanSelectColumn
+private[csv] trait CSVOperations extends CanSelectColumns
   with CanSelectRow
   with CanSelectCell
   with CanSlice

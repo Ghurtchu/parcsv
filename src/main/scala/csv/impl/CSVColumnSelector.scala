@@ -1,12 +1,14 @@
 package com.ghurtchu
 package csv.impl
 
-import csv.api.CanSelectColumn
+import csv.api.CanSelectColumns
 import csv.element._
+
+import scala.util.Try
 
 private[csv] class CSVColumnSelector(val headerPlaceMapping: Map[Header, Int],
                                      val headers: Headers,
-                                     val rows: Rows) extends CanSelectColumn {
+                                     val rows: Rows) extends CanSelectColumns {
 
   override def column(name: String): Option[Column] = {
     if (!headers.values.map(_.value).contains(name)) None
@@ -18,6 +20,11 @@ private[csv] class CSVColumnSelector(val headerPlaceMapping: Map[Header, Int],
       Some(Column(header, cells))
     }
   }
+
+  override def columns(names: String*): Either[Throwable, Columns] =
+    Try(Columns(names.toList.flatMap(column)))
+      .toEither
+
 }
 
 private[csv] object CSVColumnSelector {

@@ -37,6 +37,9 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     CSVRowSelector(rows)
       .row(index)
 
+  override def columns(names: String*): Either[Throwable, Columns] =
+    CSVColumnSelector(headerPlaceMapping, headers, rows)
+      .columns(names: _*)
 }
 
 object CSV {
@@ -75,6 +78,12 @@ object CSV {
 
     new CSV(headers, rows)
   }.toEither
+
+  def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] =
+    Try(new CSV(headers, rows))
+      .toEither
+
+  def empty: CSV = new CSV(Headers.empty, Rows.empty)
 
   private def extractHeaders(csv: String): Headers = Headers {
     csv.takeWhile(_ != '\n')
