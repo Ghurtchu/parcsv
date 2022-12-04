@@ -5,6 +5,8 @@ import api._
 import csv.element._
 import csv.impl.{CSVColumnSelector, CSVContentBuilder, CSVPrettifier, CSVRowSelector, CSVWriter}
 
+import scala.util.Try
+
 final class CSV private (override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
 
   private val headerPlaceMapping: Map[Header, Int] =
@@ -29,7 +31,7 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     CSVPrettifier(CSVColumnSelector.apply(headerPlaceMapping, headers, rows))
       .prettify
 
-  override def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Boolean =
+  override def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] =
     CSVWriter(content)
       .save(filePath)
 
@@ -40,6 +42,12 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
   override def columns(names: String*): Either[Throwable, Columns] =
     CSVColumnSelector(headerPlaceMapping, headers, rows)
       .columns(names: _*)
+
+  def display: Either[Throwable, Unit] = Try(println(this.toString)).toEither
+
+  override def rows(range: Range): Either[Throwable, Rows] =
+    CSVRowSelector(rows)
+      .rows(range)
 }
 
 object CSV {

@@ -2,65 +2,52 @@ package com.ghurtchu
 
 import csv.CSV
 
-import com.ghurtchu.csv.element.{Headers, Rows}
-
 object Main extends scala.App {
 
-  val csvFromFile = CSV.fromFile("data/programming_languages.csv")
+  val csv1 = for {
+    originalCsv <- CSV.fromFile("data/programming_languages.csv")
+    columns <- originalCsv.columns("paradigm", "name", "popularity")
+    newCsv <- columns.toCSV
+    _ <- newCsv.display
+    _ <- newCsv.save("data/programming_languages_updated.csv")
+  } yield newCsv
 
-  // Let's begin with simple task: display beautifully formatted CSV
 
-  csvFromFile match {
-    case Right(csv) => {
-
-      val twoColumnCsv = for {
-        cols   <- csv.columns("popularity", "paradigm")
-        newCsv <- cols.toCSV
-      } yield newCsv
-
-      twoColumnCsv.fold(
-        _ => (),
-        println
-      )
-
-      val wasSaved = csv.save("data/languages.csv")
-      println(wasSaved)
-
+  val csv2 = for {
+    originalCSV <- CSV.fromString {
+      """name,age,occupation
+        |nika,23,software developer
+        |toko,21,journalist
+        |gio,18,student
+        |""".stripMargin
     }
-    case _ =>
-  }
+    columns <- originalCSV.columns("name", "occupation")
+    newCsv <- columns.toCSV
+    _ <- newCsv.display
+    _ <- newCsv.save("data/people_updated.csv")
+  } yield newCsv
 
-//  val csvString =
-//    """name,age,occupation
-//      |nika,23,software developer
-//      |toko,21,journalist
-//      |gio,18,student
-//      |""".stripMargin
-//
-//  CSV.fromString(csvString) match {
-//    case Right(csv) => {
-//      println(csv)
-//      val wasSaved = csv.save("data/people.csv")
-//      println(wasSaved)
-//      println(csv.row(2))
-//    }
-//    case _ =>
-//  }
 
-//  val csvMap =
-//    Map(
-//      "band" -> ("necrophagist" :: "dying fetus" :: "brain drill" :: Nil),
-//      "genre" -> ("tech death" :: "brutal death" :: "chaotic tech death" :: Nil),
-//      "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
-//    )
-//
-//  CSV.fromMap(csvMap) match {
-//    case Right(csv) => {
-//      println(csv)
-//      val wasSaved = csv.save("data/bands.csv")
-//      println(wasSaved)
-//    }
-//    case Left(_) =>
-//  }
+  val csv3 = for {
+    originalCSV <- CSV.fromMap {
+      Map(
+        "band" -> ("necrophagist" :: "dying fetus" :: "brain drill" :: Nil),
+        "genre" -> ("tech death" :: "brutal death" :: "chaotic tech death" :: Nil),
+        "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
+      )
+    }
+    columns <- originalCSV.columns("band")
+    newCsv <- columns.toCSV
+    _ <- newCsv.display
+    _ <- newCsv.save("data/bands_updated.csv")
+  } yield newCsv
+
+  val csv4 = for {
+    csv <- CSV.fromFile("data/people.csv")
+    rows <- csv.rows(0 to 10)
+    newCsv <- rows.toCSV(csv.headers)
+    _ <- newCsv.display
+    _ <- newCsv.save("data/people_updated_2.csv")
+  } yield newCsv
 
 }

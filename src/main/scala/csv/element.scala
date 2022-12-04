@@ -33,6 +33,9 @@ object element {
 
       reprNormalized.split("], ").mkString("]\n")
     }
+
+    def toCSV(headers: Headers): Either[Throwable, CSV] =
+      CSV.fromHeadersAndRows(headers, this)
   }
 
   object Rows {
@@ -84,9 +87,10 @@ object element {
   final case class Columns(values: List[Column]) {
 
     def toCSV: Either[Throwable, CSV] = {
+      val rowLength = values.head.cells.length
       val headers = values.map(_.header)
       val headerlessColumns = values drop 0
-      val rows = (headers.indices by 1).map { i =>
+      val rows = (0 until rowLength).map { i =>
         headerlessColumns.map { col =>
           val cell = col.cells(i)
 
