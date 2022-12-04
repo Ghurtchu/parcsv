@@ -21,7 +21,7 @@ private[csv] class CSVColumnSelector(val headerPlaceMapping: Map[Header, Int],
 }
 
 private[csv] object CSVColumnSelector {
-  def instance(headerPlaceMapping: Map[Header, Int], headers: Headers, rows: Rows): CSVColumnSelector =
+  def apply(headerPlaceMapping: Map[Header, Int], headers: Headers, rows: Rows): CSVColumnSelector =
     new CSVColumnSelector(headerPlaceMapping, headers, rows)
 
 }

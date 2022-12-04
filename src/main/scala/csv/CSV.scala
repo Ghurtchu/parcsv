@@ -14,14 +14,11 @@ final class CSV(override val headers: Headers, override val rows: Rows) extends 
       .toMap
 
   override val content: Content =
-    CSVContentBuilder
-      .instance(headers, rows)
+    CSVContentBuilder(headers, rows)
       .content
 
-
   override def column(name: String): Option[Column] =
-    CSVColumnSelector
-      .instance(headerPlaceMapping, headers, rows)
+    CSVColumnSelector(headerPlaceMapping, headers, rows)
       .column(name)
 
   override def cell(rowIndex: Int, colIndex: Int): Option[Cell] = ???
@@ -29,26 +26,23 @@ final class CSV(override val headers: Headers, override val rows: Rows) extends 
   override def slice(rowRange: Range, colRange: Range): List[List[String]] = ???
 
   override val toString: String =
-    CSVPrettifier
-      .instance(CSVColumnSelector.instance(headerPlaceMapping, headers, rows))
+    CSVPrettifier(CSVColumnSelector.apply(headerPlaceMapping, headers, rows))
       .prettify
 
   override def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Boolean =
-    CSVWriter
-      .instance(content)
+    CSVWriter(content)
       .save(filePath)
 
   override def row(index: Int): Option[Row] =
-    CSVRowSelector
-      .instance(rows)
+    CSVRowSelector(rows)
       .row(index)
 
 }
 
 object CSV {
 
-    import scala.util._
-    import scala.io.Source.{fromFile => read}
+  import scala.util._
+  import scala.io.Source.{fromFile => read}
 
   def fromString(csv: String): Either[Throwable, CSV] = Try {
     val headers = extractHeaders(csv)

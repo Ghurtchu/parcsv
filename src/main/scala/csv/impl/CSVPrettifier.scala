@@ -46,6 +46,6 @@ private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelecto
 }
 
 private[csv] object CSVPrettifier {
-  def instance(csvColumnSelector: CSVColumnSelector): CanPrettify =
+  def apply(csvColumnSelector: CSVColumnSelector): CanPrettify =
     new CSVPrettifier(csvColumnSelector, csvColumnSelector.headers, csvColumnSelector.rows)
 }

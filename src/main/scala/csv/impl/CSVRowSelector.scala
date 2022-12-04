@@ -14,5 +14,5 @@ private[csv] class CSVRowSelector(private val rows: Rows) extends CanSelectRow {
 }
 
 private[csv] object CSVRowSelector {
-  def instance(rows: Rows): CanSelectRow = new CSVRowSelector(rows)
+  def apply(rows: Rows): CanSelectRow = new CSVRowSelector(rows)
 }

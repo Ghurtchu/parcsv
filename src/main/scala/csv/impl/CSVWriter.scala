@@ -17,5 +17,5 @@ private[csv] final class CSVWriter(private val content: Content) extends CanWrit
 }
 
 private[csv] object CSVWriter {
-  def instance(content: Content): CanWrite = new CSVWriter(content)
+  def apply(content: Content): CanWrite = new CSVWriter(content)
 }
