@@ -22,3 +22,9 @@ Scala code:
 Print result:
 
 ![My Image](screenshot.png)
+
+TODO:
+ - slicing
+ - merging
+ - filtering
+ - and much more...
