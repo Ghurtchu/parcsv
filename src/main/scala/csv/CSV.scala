@@ -48,6 +48,28 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
   override def rows(range: Range): Either[Throwable, Rows] =
     CSVRowSelector(rows)
       .rows(range)
+
+  def rows(indices: Int*): Either[Throwable, Rows] =
+    CSVRowSelector(rows)
+      .rows(indices: _*)
+
+  def merge(newCols: Columns, newRows: Rows): Either[Throwable, CSV] = Try {
+    val newHeaders = newCols.values.map(_.header)
+    val droppedHeaders = headerPlaceMapping.keys.toSet.diff(newHeaders.toSet)
+    val droppedRowIndexes = droppedHeaders.map(headerPlaceMapping.apply)
+    val filteredRows = Rows {
+      for {
+        row <- newRows.values
+        updatedRow <- droppedRowIndexes.map { index =>
+          val (left, right) = row.cells.splitAt(index)
+
+          Row(left ::: right.tail)
+        }
+      } yield updatedRow
+    }
+
+    new CSV(Headers(newHeaders), filteredRows)
+  }.toEither
 }
 
 object CSV {

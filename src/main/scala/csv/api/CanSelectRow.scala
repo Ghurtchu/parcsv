@@ -9,4 +9,6 @@ private[csv] trait CanSelectRow {
 
   def rows(range: Range): Either[Throwable, Rows]
 
+  def rows(indices: Int*): Either[Throwable, Rows]
+
 }

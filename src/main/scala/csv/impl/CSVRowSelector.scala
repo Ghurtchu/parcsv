@@ -19,6 +19,18 @@ private[csv] class CSVRowSelector(private val rows: Rows) extends CanSelectRow {
         .slice(range.head, range.end)
     }
   }.toEither
+
+  def rows(indices: Int*): Either[Throwable, Rows] = Try {
+    Rows {
+      rows.values
+        .zipWithIndex.filter { rowWithIndex =>
+        val ind = rowWithIndex._2
+
+        indices contains ind
+      }.map(_._1)
+    }
+  }.toEither
+
 }
 
 private[csv] object CSVRowSelector {

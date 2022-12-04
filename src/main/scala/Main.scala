@@ -2,16 +2,15 @@ package com.ghurtchu
 
 import csv.CSV
 
-import com.ghurtchu.csv.element.Headers
-
 object Main extends scala.App {
 
   val csv = for {
     csv <- CSV.fromFile("data/programming_languages.csv") // read from file
-    cols <- csv.columns("name", "popularity", "paradigm") // take these columns
-    newCsv <- cols.toCSV // create new CSV
+    cols <- csv.columns("popularity", "name", "paradigm") // take these columns
+    rows <- csv.rows(1, 2, 3, 4) // rows within [4, 8) so rows at index 4, 5, 6
+    newCsv <- csv.merge(cols, rows) // create new CSV
     _ <- newCsv.display // print it
-    _ <- newCsv.save("data/programming_languages_updated.csv") // save new CSV
+    _ <- newCsv.save("data/programming_languages_updated.csv") // save updated CSV
   } yield newCsv
 
   val csv2 = for {

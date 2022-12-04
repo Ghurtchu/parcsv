@@ -1,6 +1,5 @@
-name,popularity,paradigm
-Scala,Moderate,object-functional
-Java,High,object-oriented
-Python,High,object-oriented
-JavaScript,High,nobody knows :)
-C#,High,object-oriented
+popularity,name,paradigm
+Java,object-oriented,High
+Python,object-oriented,High
+JavaScript,nobody knows :),High
+C#,object-oriented,High

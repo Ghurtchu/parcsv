@@ -4,3 +4,5 @@ Java,object-oriented,James Gosling,High
 Python,object-oriented,Guido van Rossum,High
 JavaScript,nobody knows :),Brendan Eich,High
 C#,object-oriented,Anders Hejlsberg,High
+Haskell,functional,Simon Peyton Jones,Low
+C,procedural,Dennis Ritchie,Moderate
