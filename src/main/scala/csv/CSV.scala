@@ -42,7 +42,7 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     CSVColumnSelector(headerPlaceMapping, headers, rows)
       .columns(names: _*)
 
-  def display: Either[Throwable, Unit] = Try(println(this.toString)).toEither
+  def display: Either[Throwable, Unit] = Try(println(this)).toEither
 
   override def rows(range: Range): Either[Throwable, Rows] =
     CSVRowSelector(rows)
@@ -76,21 +76,18 @@ object CSV {
   import scala.util._
   import scala.io.Source.{fromFile => read}
 
-  def fromString(csv: String): Either[Throwable, CSV] = Try {
-    val headers = extractHeaders(csv)
-    val rows = extractRows(csv)
-
-    new CSV(headers, rows)
-  }.toEither
+  def fromString(csvContent: String): Either[Throwable, CSV] =
+    Try(new CSV(extractHeaders(csvContent), extractRows(csvContent)))
+      .toEither
 
   def fromFile(path: String): Either[Throwable, CSV] = Try {
     val file = read(path)
-    val csv = file.mkString
+    val csvContent = file.mkString
 
     file.close()
 
-    val headers = extractHeaders(csv)
-    val rows = extractRows(csv)
+    val headers = extractHeaders(csvContent)
+    val rows = extractRows(csvContent)
 
     new CSV(headers, rows)
   }.toEither
@@ -125,8 +122,31 @@ object CSV {
       .tail
       .split("\n")
       .toList
-      .map(_.split(",").toList.map(Cell.apply))
-      .map(Row.apply)
+      .map { rawLine =>
+        val data: Array[String] = rawLine.split("\"").filter(_ != ",")
+        if (data.length > 1) {
+          val processed = data.flatMap { each =>
+            if (each.endsWith(",")) {
+              val str = each.substring(0, each.length - 1)
+
+              Array(str)
+            } else if (each.startsWith(",")) {
+              val str = each.drop(1)
+
+              str.split(",")
+            }
+            else {
+              Array(each)
+            }
+          }
+
+          processed
+        } else {
+          rawLine.split(",")
+        }
+      }.map { arr =>
+      arr.map(Cell.apply)
+    }.map(arr => Row(arr.toList))
   }
 
 }
