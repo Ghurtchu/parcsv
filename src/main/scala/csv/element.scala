@@ -1,7 +1,7 @@
 package com.ghurtchu
 package csv
 
-package object api {
+object element {
 
   final case class Cell(value: String) {
     override def toString: String = value

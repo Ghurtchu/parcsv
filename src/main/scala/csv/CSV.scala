@@ -2,13 +2,15 @@ package com.ghurtchu
 package csv
 
 import api._
+import com.ghurtchu.csv.element._
+import com.ghurtchu.csv.impl.{CSVRowSelector, CSVWriter}
 
 import java.io.{BufferedWriter, File, FileWriter}
 import scala.util.Try
 
-final class CSV(override val headers: Headers, override val rows: Rows) extends CSVBaseProtocol with CSVSaveProtocol {
+final class CSV(override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
 
-  protected override val headerPlaceMapping: Map[Header, Int] =
+  private val headerPlaceMapping: Map[Header, Int] =
     headers
       .values
       .zipWithIndex
@@ -38,7 +40,7 @@ final class CSV(override val headers: Headers, override val rows: Rows) extends 
     }
   }
 
-  override def at(rowIndex: Int, colIndex: Int): Option[Cell] = ???
+  override def cell(rowIndex: Int, colIndex: Int): Option[Cell] = ???
 
   override def slice(rowRange: Range, colRange: Range): List[List[String]] = ???
 
@@ -78,15 +80,13 @@ final class CSV(override val headers: Headers, override val rows: Rows) extends 
     concatenatedHeaders concat "\n" concat "-" * (concatenatedHeaders.length - 1) concat "\n" concat concatenatedRows
   }
 
-  override def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Boolean = Try {
-    val file = new File(filePath)
-    val bw = new BufferedWriter(new FileWriter(file))
-    bw.write(content.data)
+  override def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Boolean =
+    CSVWriter.fromContent(content)
+      .save(filePath)
 
-    bw.close()
-  }.isSuccess
-
-  override def row(index: Int): Option[Row] = Try(rows.values(index)).toOption
+  override def row(index: Int): Option[Row] =
+    CSVRowSelector.fromRows(rows)
+      .row(index)
 
 }
 
