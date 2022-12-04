@@ -9,7 +9,7 @@ object Main extends scala.App {
   // Let's begin with simple task: display beautifully formatted CSV
 
   csvFromFile match {
-    case Right(csv) => println(csv)
+    case Right(csv) => csv.save("data/ragaca.csv")
     case _ =>
   }
 
@@ -27,9 +27,9 @@ object Main extends scala.App {
 
   val csvMap =
     Map(
-      "band" -> ("necrophagist" :: "dying fetus" :: Nil),
-      "genre" -> ("tech death" :: "brutal death" :: Nil),
-      "lead" -> ("Muammed Suicmez" :: "John Gallagher" :: Nil)
+      "band" -> ("necrophagist" :: "dying fetus" :: "brain drill" :: Nil),
+      "genre" -> ("tech death" :: "brutal death" :: "chaotic tech death" :: Nil),
+      "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
     )
 
   CSV.fromMap(csvMap) match {

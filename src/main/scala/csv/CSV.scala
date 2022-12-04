@@ -3,7 +3,20 @@ package csv
 
 import api._
 
-final class CSV(override val headers: List[Header], override val rows: Rows) extends CSVProtocol {
+import java.io.{BufferedWriter, File, FileWriter}
+import scala.util.Try
+
+final class CSV(override val headers: List[Header], override val rows: Rows) extends CSVBaseProtocol with CSVSaveProtocol {
+
+  override def content: Content = Content {
+    val headersSeparated = headers.map(_.value).reduce((a, b) => a concat "," concat b)
+    val rowsList = rows.values.map { row =>
+      row.cells
+        .map(_.value).reduce((a, b) => a concat "," concat b) concat "\n"
+    }.reduce(_ concat _)
+
+    headersSeparated concat "\n" concat rowsList
+  }
 
   protected override def headerPlaceMapping: Map[Header, Int] =
     headers
@@ -56,12 +69,21 @@ final class CSV(override val headers: List[Header], override val rows: Rows) ext
 
     concatenatedHeaders concat "\n" concat "-" * (concatenatedHeaders.length - 1) concat "\n" concat concatenatedRows
   }
+
+  override def save(filePath: String = scala.util.Random.nextString(10) concat ".csv"): Boolean = Try {
+    val file = new File(filePath)
+    val bw = new BufferedWriter(new FileWriter(file))
+    bw.write(content.data)
+
+    bw.close()
+  }.isSuccess
+
 }
 
 object CSV {
 
-  import scala.util._
-  import scala.io.Source.{fromFile => read}
+    import scala.util._
+    import scala.io.Source.{fromFile => read}
 
   def fromString(csv: String): Either[Throwable, CSV] = Try {
     val headers = extractHeaders(csv)

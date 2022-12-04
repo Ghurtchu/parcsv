@@ -1,9 +1,9 @@
 package com.ghurtchu
 package csv.api
 
-private[csv] trait CSVProtocol {
+private[csv] trait CSVBaseProtocol {
 
-//  def content: Content
+  def content: Content
 
   def headers: List[Header]
 
