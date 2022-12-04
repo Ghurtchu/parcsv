@@ -54,7 +54,8 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
 
   def merge(newCols: Columns, newRows: Rows): Either[Throwable, CSV] = Try {
     val newHeaders = newCols.values.map(_.header)
-    val droppedHeaders = headerPlaceMapping.keys.toSet.diff(newHeaders.toSet)
+    val sortedHeaders = headers.values.flatMap { h => Some(h).filter(newHeaders.contains) }
+    val droppedHeaders = headerPlaceMapping.keys.toSet.diff(sortedHeaders.toSet)
     val droppedRowIndexes = droppedHeaders.map(headerPlaceMapping.apply)
     val filteredRows = Rows {
       for {
@@ -67,7 +68,7 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
       } yield updatedRow
     }
 
-    new CSV(Headers(newHeaders), filteredRows)
+    new CSV(Headers(sortedHeaders), filteredRows)
   }.toEither
 }
 

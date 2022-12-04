@@ -1,5 +1,5 @@
-popularity,name,paradigm
-Scala,object-oriented, functional,Moderate
-Java,object-oriented,High
-Python,object-oriented,High
-JavaScript,nobody knows :),High
+name,paradigm,creator
+Scala,object-oriented, functional,Martin Odersky
+Java,object-oriented,James Gosling
+Python,object-oriented,Guido van Rossum
+JavaScript,nobody knows :),Brendan Eich
