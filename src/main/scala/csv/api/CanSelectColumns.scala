@@ -1,7 +1,6 @@
 package com.ghurtchu
 package csv.api
 
-import csv.element.{Column, Columns}
 import csv.CSV
 
 private[csv] trait CanSelectColumns {

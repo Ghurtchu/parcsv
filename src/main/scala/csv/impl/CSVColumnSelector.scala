@@ -2,7 +2,7 @@ package com.ghurtchu
 package csv.impl
 
 import csv.api.CanSelectColumns
-import csv.element._
+import csv._
 
 import scala.util.Try
 

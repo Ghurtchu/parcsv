@@ -1,7 +1,6 @@
 package com.ghurtchu
-package csv
 
-object element {
+package object csv {
 
   final case class Cell(value: String) {
     override def toString: String = value

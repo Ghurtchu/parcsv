@@ -8,6 +8,8 @@ Typical flow:
 
 Scala code:
 ```scala
+import com.ghurtchu.csv._
+
 val filteredCSV = for {
   csv    <- CSV.fromFile("data/programming_languages.csv") // read CSV file
   cols   <- csv.columns("popularity", "name", "paradigm") // take only 3 columns of interest

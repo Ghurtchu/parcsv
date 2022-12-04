@@ -1,14 +1,12 @@
 package com.ghurtchu
 package csv.impl
 
+import csv._
 import csv.api.CanBuildContent
-
-import csv.element
-import csv.element.{Content, Headers, Rows}
 
 private[csv] class CSVContentBuilder(headers: Headers, rows: Rows) extends CanBuildContent {
 
-  override def content: element.Content = Content {
+  override def content: Content = Content {
       val headersSeparated = headers.values.map(_.value).reduce((h1, h2) => h1 concat "," concat h2)
       val rowsList = rows.values.map { row =>
         row.cells

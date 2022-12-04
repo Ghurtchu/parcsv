@@ -2,8 +2,7 @@ package com.ghurtchu
 package csv.impl
 
 import csv.api.CanPrettify
-
-import csv.element.{Headers, Rows}
+import csv._
 
 private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelector,
                                  private val headers: Headers,

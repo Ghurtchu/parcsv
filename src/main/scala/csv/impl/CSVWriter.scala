@@ -2,7 +2,7 @@ package com.ghurtchu
 package csv.impl
 
 import csv.api.CanWrite
-import csv.element.Content
+import csv._
 
 import java.io.{BufferedWriter, File, FileWriter}
 import scala.util.Try

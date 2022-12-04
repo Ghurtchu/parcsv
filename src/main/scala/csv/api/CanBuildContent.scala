@@ -1,7 +1,7 @@
 package com.ghurtchu
 package csv.api
 
-import csv.element.Content
+import .Content
 
 private[csv] trait CanBuildContent {
   def content: Content

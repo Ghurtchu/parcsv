@@ -2,7 +2,6 @@ package com.ghurtchu
 package csv
 
 import api._
-import csv.element._
 import csv.impl.{CSVColumnSelector, CSVContentBuilder, CSVPrettifier, CSVRowSelector, CSVWriter}
 
 import scala.util.Try
