@@ -12,7 +12,6 @@ object Main extends scala.App {
     _ <- newCsv.save("data/programming_languages_updated.csv")
   } yield newCsv
 
-
   val csv2 = for {
     originalCSV <- CSV.fromString {
       """name,age,occupation
@@ -26,7 +25,6 @@ object Main extends scala.App {
     _ <- newCsv.display
     _ <- newCsv.save("data/people_updated.csv")
   } yield newCsv
-
 
   val csv3 = for {
     originalCSV <- CSV.fromMap {
