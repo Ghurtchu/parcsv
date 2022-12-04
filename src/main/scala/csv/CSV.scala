@@ -8,7 +8,7 @@ import scala.util.Try
 
 final class CSV(override val headers: List[Header], override val rows: Rows) extends CSVBaseProtocol with CSVSaveProtocol {
 
-  override def content: Content = Content {
+  override val content: Content = Content {
     val headersSeparated = headers.map(_.value).reduce((h1, h2) => h1 concat "," concat h2)
     val rowsList = rows.values.map { row =>
       row.cells
@@ -73,7 +73,7 @@ final class CSV(override val headers: List[Header], override val rows: Rows) ext
     bw.close()
   }.isSuccess
 
-  protected override def headerPlaceMapping: Map[Header, Int] =
+  protected override val headerPlaceMapping: Map[Header, Int] =
     headers
       .zipWithIndex
       .toMap

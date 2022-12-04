@@ -3,11 +3,11 @@ package csv.api
 
 private[csv] trait CSVBaseProtocol {
 
-  def content: Content
-
   def headers: List[Header]
 
   def rows: Rows
+
+  def content: Content
 
   def column(name: String): Option[Column]
 

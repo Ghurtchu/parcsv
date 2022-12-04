@@ -9,7 +9,11 @@ object Main extends scala.App {
   // Let's begin with simple task: display beautifully formatted CSV
 
   csvFromFile match {
-    case Right(csv) => println(csv.save())
+    case Right(csv) => {
+      println(csv)
+      val wasSaved = csv.save("data/languages.csv")
+      println(wasSaved)
+    }
     case _ =>
   }
 
@@ -21,7 +25,11 @@ object Main extends scala.App {
       |""".stripMargin
 
   CSV.fromString(csvString) match {
-    case Right(value) => println(value)
+    case Right(csv) => {
+      println(csv)
+      val wasSaved = csv.save("data/people.csv")
+      println(wasSaved)
+    }
     case _ =>
   }
 
@@ -33,7 +41,11 @@ object Main extends scala.App {
     )
 
   CSV.fromMap(csvMap) match {
-    case Right(value) => println(value)
+    case Right(csv) => {
+      println(csv)
+      val wasSaved = csv.save("data/bands.csv")
+      println(wasSaved)
+    }
     case Left(_) =>
   }
 
