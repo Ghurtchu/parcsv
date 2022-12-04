@@ -9,19 +9,14 @@ import scala.util.Try
 final class CSV(override val headers: List[Header], override val rows: Rows) extends CSVBaseProtocol with CSVSaveProtocol {
 
   override def content: Content = Content {
-    val headersSeparated = headers.map(_.value).reduce((a, b) => a concat "," concat b)
+    val headersSeparated = headers.map(_.value).reduce((h1, h2) => h1 concat "," concat h2)
     val rowsList = rows.values.map { row =>
       row.cells
-        .map(_.value).reduce((a, b) => a concat "," concat b) concat "\n"
+        .map(_.value).reduce((c1, c2) => c1 concat "," concat c2) concat "\n"
     }.reduce(_ concat _)
 
     headersSeparated concat "\n" concat rowsList
   }
-
-  protected override def headerPlaceMapping: Map[Header, Int] =
-    headers
-      .zipWithIndex
-      .toMap
 
   override def column(name: String): Option[Column] = {
     if (!headers.map(_.value).contains(name)) None
@@ -70,7 +65,7 @@ final class CSV(override val headers: List[Header], override val rows: Rows) ext
     concatenatedHeaders concat "\n" concat "-" * (concatenatedHeaders.length - 1) concat "\n" concat concatenatedRows
   }
 
-  override def save(filePath: String = scala.util.Random.nextString(10) concat ".csv"): Boolean = Try {
+  override def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Boolean = Try {
     val file = new File(filePath)
     val bw = new BufferedWriter(new FileWriter(file))
     bw.write(content.data)
@@ -78,6 +73,10 @@ final class CSV(override val headers: List[Header], override val rows: Rows) ext
     bw.close()
   }.isSuccess
 
+  protected override def headerPlaceMapping: Map[Header, Int] =
+    headers
+      .zipWithIndex
+      .toMap
 }
 
 object CSV {

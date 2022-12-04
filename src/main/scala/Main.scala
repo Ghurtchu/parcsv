@@ -9,7 +9,7 @@ object Main extends scala.App {
   // Let's begin with simple task: display beautifully formatted CSV
 
   csvFromFile match {
-    case Right(csv) => csv.save("data/ragaca.csv")
+    case Right(csv) => println(csv.save())
     case _ =>
   }
 
