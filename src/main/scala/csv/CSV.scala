@@ -91,6 +91,9 @@ object CSV {
     Try(new CSV(headers, rows))
       .toEither
 
+  def fromColumnsAndRows(columns: Columns, rows: Rows): Either[Throwable, CSV] =
+    fromHeadersAndRows(Headers(columns.values.map(_.header)), rows)
+
   def empty: CSV = new CSV(Headers.empty, Rows.empty)
 
   private def extractHeaders(csv: String): Headers = Headers {
