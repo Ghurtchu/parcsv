@@ -1,8 +1,6 @@
 package com.ghurtchu
 package csv
 
-import scala.util.Try
-
 object element {
 
   final case class Cell(value: String) {

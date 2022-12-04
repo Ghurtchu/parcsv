@@ -13,8 +13,8 @@ private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelecto
     val maxLengthPerColumn = headers.values.map(_.value).map { header =>
       csvColumnSelector.column(header)
         .fold(0) { col =>
-          col.cells
-            .map(_.value)
+          (header :: col.cells
+            .map(_.value))
             .maxBy(_.length)
             .length
         }
