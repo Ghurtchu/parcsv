@@ -21,7 +21,6 @@ object element {
       val repr = values.map(_.toString).toString
       val reprNormalized = repr.substring(5, repr.length - 1)
 
-
       reprNormalized.split("], ").mkString("]\n")
     }
   }
