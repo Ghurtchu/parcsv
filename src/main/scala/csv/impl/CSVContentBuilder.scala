@@ -23,6 +23,7 @@ private[csv] class CSVContentBuilder(headers: Headers, rows: Rows) extends CanBu
 }
 
 private[csv] object CSVContentBuilder {
-  def apply(headers: Headers, rows: Rows): CanBuildContent =
+
+  def apply(headers: Headers, rows: Rows): CSVContentBuilder =
     new CSVContentBuilder(headers, rows)
 }

@@ -8,6 +8,7 @@ import csv.element.{Headers, Rows}
 private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelector,
                                  private val headers: Headers,
                                  private val rows: Rows) extends CanPrettify {
+
   override def prettify: String = {
     val maxLengthPerColumn = headers.values.map(_.value).map { header =>
       csvColumnSelector.column(header)
@@ -46,6 +47,7 @@ private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelecto
 }
 
 private[csv] object CSVPrettifier {
-  def apply(csvColumnSelector: CSVColumnSelector): CanPrettify =
+
+  def apply(csvColumnSelector: CSVColumnSelector): CSVPrettifier =
     new CSVPrettifier(csvColumnSelector, csvColumnSelector.headers, csvColumnSelector.rows)
 }
