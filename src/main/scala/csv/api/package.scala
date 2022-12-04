@@ -30,6 +30,15 @@ package object api {
     override def toString: String = value
   }
 
+  final case class Headers(values: List[Header]) {
+    override def toString: String = {
+      val repr = values.map(_.toString).toString
+      val reprNormalized = repr.substring(5, repr.length - 1)
+
+      reprNormalized.split("], ").mkString("]\n")
+    }
+  }
+
   final case class Content(data: String) {
     override def toString: String = data
   }

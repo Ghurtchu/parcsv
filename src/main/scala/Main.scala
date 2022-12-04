@@ -11,6 +11,13 @@ object Main extends scala.App {
   csvFromFile match {
     case Right(csv) => {
       println(csv)
+      println(csv.headers)
+      println(csv.row(1))
+
+      csv.headers.values.map(_.value).foreach { colName =>
+        println(csv.column(colName))
+      }
+
       val wasSaved = csv.save("data/languages.csv")
       println(wasSaved)
     }
@@ -29,6 +36,7 @@ object Main extends scala.App {
       println(csv)
       val wasSaved = csv.save("data/people.csv")
       println(wasSaved)
+      println(csv.row(2))
     }
     case _ =>
   }

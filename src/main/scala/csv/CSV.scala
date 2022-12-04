@@ -6,20 +6,29 @@ import api._
 import java.io.{BufferedWriter, File, FileWriter}
 import scala.util.Try
 
-final class CSV(override val headers: List[Header], override val rows: Rows) extends CSVBaseProtocol with CSVSaveProtocol {
+final class CSV(override val headers: Headers, override val rows: Rows) extends CSVBaseProtocol with CSVSaveProtocol {
+
+  protected override val headerPlaceMapping: Map[Header, Int] =
+    headers
+      .values
+      .zipWithIndex
+      .toMap
 
   override val content: Content = Content {
-    val headersSeparated = headers.map(_.value).reduce((h1, h2) => h1 concat "," concat h2)
+    val headersSeparated = headers.values.map(_.value).reduce((h1, h2) => h1 concat "," concat h2)
     val rowsList = rows.values.map { row =>
       row.cells
-        .map(_.value).reduce((c1, c2) => c1 concat "," concat c2) concat "\n"
-    }.reduce(_ concat _)
+        .map(_.value)
+        .reduce((c1, c2) => c1 concat "," concat c2) concat "\n"
+      }.reduce(_ concat _)
 
-    headersSeparated concat "\n" concat rowsList
+    headersSeparated
+      .concat("\n")
+      .concat(rowsList)
   }
 
   override def column(name: String): Option[Column] = {
-    if (!headers.map(_.value).contains(name)) None
+    if (!headers.values.map(_.value).contains(name)) None
     else {
       val header = Header(name)
       val count = headerPlaceMapping(header)
@@ -34,18 +43,22 @@ final class CSV(override val headers: List[Header], override val rows: Rows) ext
   override def slice(rowRange: Range, colRange: Range): List[List[String]] = ???
 
   override def toString: String = {
-    val maxLengthPerColumn = headers.map(_.value).map { header =>
-      val col = column(header).get
-
-      (header :: col.cells.map(_.value)).maxBy(_.length).length
+    val maxLengthPerColumn = headers.values.map(_.value).map { header =>
+      column(header)
+        .fold(0) { col =>
+          col.cells
+            .map(_.value)
+            .maxBy(_.length)
+            .length
+      }
     }
 
-    val concatenatedHeaders: String = (maxLengthPerColumn.zip(headers).map { tup =>
+    val concatenatedHeaders: String = maxLengthPerColumn.zip(headers.values).map { tup =>
       val length = tup._1
       val header = tup._2
 
       header.value concat (" " * (length - header.value.length)) concat " | "
-    }).reduce(_ concat _)
+    }.reduce(_ concat _)
 
     val stringifiedRows: List[List[String]] = rows.values.map(_.cells.map(_.value))
 
@@ -73,10 +86,8 @@ final class CSV(override val headers: List[Header], override val rows: Rows) ext
     bw.close()
   }.isSuccess
 
-  protected override val headerPlaceMapping: Map[Header, Int] =
-    headers
-      .zipWithIndex
-      .toMap
+  override def row(index: Int): Option[Row] = Try(rows.values(index)).toOption
+
 }
 
 object CSV {
@@ -103,7 +114,7 @@ object CSV {
   }.toEither
 
   def fromMap(map: Map[String, List[String]]): Either[Throwable, CSV] = Try {
-    val headers = map.keys.map(Header.apply).toList
+    val headers = Headers(map.keys.map(Header.apply).toList)
     val rows = Rows {
       (map.head._2.indices by 1).map { i =>
         map.values
@@ -116,19 +127,21 @@ object CSV {
     new CSV(headers, rows)
   }.toEither
 
-  private def extractHeaders(csv: String): List[Header] =
+  private def extractHeaders(csv: String): Headers = Headers {
     csv.takeWhile(_ != '\n')
       .split(",")
       .map(Header.apply)
       .toList
+  }
 
-  private def extractRows(csv: String): Rows =
-    Rows(csv.dropWhile(_ != '\n')
+  private def extractRows(csv: String): Rows = Rows {
+    csv.dropWhile(_ != '\n')
       .tail
       .split("\n")
       .toList
       .map(_.split(",").toList.map(Cell.apply))
-      .map(Row.apply))
+      .map(Row.apply)
+  }
 
 }
 
