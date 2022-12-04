@@ -87,6 +87,7 @@ object CSV {
   def fromFile(path: String): Either[Throwable, CSV] = Try {
     val file = read(path)
     val csv = file.mkString
+
     file.close()
 
     val headers = extractHeaders(csv)
@@ -112,11 +113,6 @@ object CSV {
   def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] =
     Try(new CSV(headers, rows))
       .toEither
-
-  def fromColumnsAndRows(columns: Columns, rows: Rows): Either[Throwable, CSV] =
-    fromHeadersAndRows(Headers(columns.values.map(_.header)), rows)
-
-  def empty: CSV = new CSV(Headers.empty, Rows.empty)
 
   private def extractHeaders(csv: String): Headers = Headers {
     csv.takeWhile(_ != '\n')

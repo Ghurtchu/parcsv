@@ -1,5 +1,4 @@
 popularity,name,paradigm
-Java,object-oriented,High
-Python,object-oriented,High
-JavaScript,nobody knows :),High
 C#,object-oriented,High
+Haskell,functional,Low
+C,procedural,Moderate
