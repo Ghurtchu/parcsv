@@ -6,4 +6,5 @@ private[csv] trait CSVOperations extends CanSelectColumn
   with CanSelectCell
   with CanSlice
   with CanWrite
+  with CanBuildContent
 

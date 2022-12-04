@@ -5,8 +5,6 @@ import csv.element._
 
 private[csv] trait CSVStructure {
 
-  def content: Content
-
   def headers: Headers
 
   def rows: Rows

@@ -8,6 +8,7 @@ import java.io.{BufferedWriter, File, FileWriter}
 import scala.util.Try
 
 private[csv] final class CSVWriter(private val content: Content) extends CanWrite {
+
   override def save(fileName: String): Boolean = Try {
     val writer = new BufferedWriter(new FileWriter(new File(fileName)))
     writer.write(content.data)
@@ -16,5 +17,5 @@ private[csv] final class CSVWriter(private val content: Content) extends CanWrit
 }
 
 private[csv] object CSVWriter {
-  def fromContent(content: Content): CanWrite = new CSVWriter(content)
+  def instance(content: Content): CanWrite = new CSVWriter(content)
 }

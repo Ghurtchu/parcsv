@@ -2,11 +2,8 @@ package com.ghurtchu
 package csv
 
 import api._
-import com.ghurtchu.csv.element._
-import com.ghurtchu.csv.impl.{CSVRowSelector, CSVWriter}
-
-import java.io.{BufferedWriter, File, FileWriter}
-import scala.util.Try
+import csv.element._
+import csv.impl.{CSVColumnSelector, CSVContentBuilder, CSVPrettifier, CSVRowSelector, CSVWriter}
 
 final class CSV(override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
 
@@ -16,76 +13,34 @@ final class CSV(override val headers: Headers, override val rows: Rows) extends 
       .zipWithIndex
       .toMap
 
-  override val content: Content = Content {
-    val headersSeparated = headers.values.map(_.value).reduce((h1, h2) => h1 concat "," concat h2)
-    val rowsList = rows.values.map { row =>
-      row.cells
-        .map(_.value)
-        .reduce((c1, c2) => c1 concat "," concat c2) concat "\n"
-      }.reduce(_ concat _)
+  override val content: Content =
+    CSVContentBuilder
+      .instance(headers, rows)
+      .content
 
-    headersSeparated
-      .concat("\n")
-      .concat(rowsList)
-  }
 
-  override def column(name: String): Option[Column] = {
-    if (!headers.values.map(_.value).contains(name)) None
-    else {
-      val header = Header(name)
-      val count = headerPlaceMapping(header)
-      val cells = rows.values.map(_.cells(count))
-
-      Some(Column(header, cells))
-    }
-  }
+  override def column(name: String): Option[Column] =
+    CSVColumnSelector
+      .instance(headerPlaceMapping, headers, rows)
+      .column(name)
 
   override def cell(rowIndex: Int, colIndex: Int): Option[Cell] = ???
 
   override def slice(rowRange: Range, colRange: Range): List[List[String]] = ???
 
-  override def toString: String = {
-    val maxLengthPerColumn = headers.values.map(_.value).map { header =>
-      column(header)
-        .fold(0) { col =>
-          col.cells
-            .map(_.value)
-            .maxBy(_.length)
-            .length
-      }
-    }
-
-    val concatenatedHeaders: String = maxLengthPerColumn.zip(headers.values).map { tup =>
-      val length = tup._1
-      val header = tup._2
-
-      header.value concat (" " * (length - header.value.length)) concat " | "
-    }.reduce(_ concat _)
-
-    val stringifiedRows: List[List[String]] = rows.values.map(_.cells.map(_.value))
-
-    val concatenatedRows: String = (stringifiedRows.zip(List.fill(stringifiedRows.size)(maxLengthPerColumn)).map { tup =>
-      val row = tup._1
-      val lengths = tup._2
-
-      (for (i <- row.indices) yield {
-        val cell = row(i)
-        val length = lengths(i)
-
-        cell + " " * (length - cell.length) + " | "
-      }).reduce(_ concat _)
-    }).reduce((row1, row2) => row1 concat "\n" concat row2)
-
-
-    concatenatedHeaders concat "\n" concat "-" * (concatenatedHeaders.length - 1) concat "\n" concat concatenatedRows
-  }
+  override val toString: String =
+    CSVPrettifier
+      .instance(CSVColumnSelector.instance(headerPlaceMapping, headers, rows))
+      .prettify
 
   override def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Boolean =
-    CSVWriter.fromContent(content)
+    CSVWriter
+      .instance(content)
       .save(filePath)
 
   override def row(index: Int): Option[Row] =
-    CSVRowSelector.fromRows(rows)
+    CSVRowSelector
+      .instance(rows)
       .row(index)
 
 }
