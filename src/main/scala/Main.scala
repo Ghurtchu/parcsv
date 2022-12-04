@@ -2,6 +2,8 @@ package com.ghurtchu
 
 import csv.CSV
 
+import com.ghurtchu.csv.element.{Headers, Rows}
+
 object Main extends scala.App {
 
   val csvFromFile = CSV.fromFile("data/programming_languages.csv")

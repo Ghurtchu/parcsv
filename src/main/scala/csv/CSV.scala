@@ -5,7 +5,7 @@ import api._
 import csv.element._
 import csv.impl.{CSVColumnSelector, CSVContentBuilder, CSVPrettifier, CSVRowSelector, CSVWriter}
 
-final class CSV(override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
+final class CSV private (override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
 
   private val headerPlaceMapping: Map[Header, Int] =
     headers
