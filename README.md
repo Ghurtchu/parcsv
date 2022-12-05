@@ -11,12 +11,12 @@ Scala code:
 import com.ghurtchu.csv._
 
 val transformedCSV = for {
-  originalCSV     <- CSV.fromFile("data/programming_languages.csv") // read file from system
-  headers         <- originalCSV.headers("name", "popularity", "paradigm") // choose the headers of your interest
-  rows            <- originalCSV.rows(3 to 7) // take rows within [3, 7) so rows at index [3, 4, 5, 6]
+  originalCSV     <- CSV.fromFile("data/programming_languages.csv") // read file
+  headers         <- originalCSV.headers("name", "popularity", "paradigm") // choose headers
+  rows            <- originalCSV.rows(3 to 7) // filter rows by indexes
   functionalLangs <- rows.filter(_.value.contains("functional")) // take languages which support "functional" paradigm
-  processedCSV    <- CSV(headers, functionalLangs) // create new CSV file by joining cols and rows of interest
-  _               <- processedCSV.display // display CSV to validate your intentions
+  processedCSV    <- headers <+> functionalLangs // join headers and rows to get new CSV
+  _               <- processedCSV.display // display it to validate your intentions
   _               <- processedCSV.save("data/programming_languages_updated.csv") // save it as a file
 } yield processedCSV
 ```

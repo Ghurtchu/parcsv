@@ -4,6 +4,16 @@ import scala.util.Try
 
 package object csv {
 
+  sealed trait Mergeable
+
+  implicit class MergeableOps(self: Mergeable) {
+    def <+>(that: Mergeable): Either[Throwable, CSV] = (self, that) match {
+      case (Headers(h), Rows(r)) => CSV(Headers(h), Rows(r))
+      case (Rows(r), Headers(h)) => CSV(Headers(h), Rows(r))
+      case _ => Left(new RuntimeException("Merge operation can not be performed"))
+    }
+  }
+
   final case class Cell(index: Int, header: Header, value: String) {
     override def toString: String = value
   }
@@ -17,7 +27,7 @@ package object csv {
     }
   }
 
-  final case class Rows(values: List[Row]) {
+  final case class Rows(values: List[Row]) extends Mergeable {
     override def toString: String = {
       val repr = values.map(_.toString).toString
       val reprNormalized = repr.substring(5, repr.length - 1)
@@ -41,7 +51,7 @@ package object csv {
     override def toString: String = value
   }
 
-  final case class Headers(values: List[Header]) {
+  final case class Headers(values: List[Header]) extends Mergeable {
     override def toString: String = {
       val repr = values.map(_.toString).toString
       val reprNormalized = repr.substring(5, repr.length - 1)
