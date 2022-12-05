@@ -123,29 +123,27 @@ object CSV {
   }.toEither
 
   def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
-    val strHeaders: List[String] = headers.values.map(_.value)
     val rowsBuffer = collection.mutable.ArrayBuffer.empty[Row]
 
     rows.values.foreach { row =>
-      val updatedBuffer = collection.mutable.ArrayBuffer.empty[Cell]
+      val sortedCells = collection.mutable.ArrayBuffer.empty[Cell]
 
-      val copiedBuffer = collection.mutable.ArrayBuffer.empty[Cell]
-      row.cells.foreach(copiedBuffer.append)
+      val copiedCells = collection.mutable.Stack.empty[Cell]
+      row.cells.foreach(copiedCells.append)
 
-      strHeaders.foreach { header =>
-        for (i <- copiedBuffer.indices) {
-          val cell = copiedBuffer(i)
-          if (cell.header.value == header && !updatedBuffer.contains(cell)) {
-            updatedBuffer append cell
+      headers.values.foreach { header =>
+        copiedCells.indices.foreach { i =>
+          val cell = copiedCells(i)
+          if (cell.header == header && !sortedCells.contains(cell)) {
+            sortedCells append cell
           }
         }
       }
 
-      rowsBuffer.append(Row(updatedBuffer.toList))
+      rowsBuffer.append(Row(sortedCells.toList))
     }
 
-    val updatedRows = Rows(rowsBuffer.toList)
-    Try(new CSV(headers, updatedRows))
+    Try(new CSV(headers, Rows(rowsBuffer.toList)))
       .toEither
   }
 

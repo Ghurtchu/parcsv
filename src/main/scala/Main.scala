@@ -6,7 +6,7 @@ object Main extends scala.App {
 
   val filteredCSV = for {
     csv    <- CSV.fromFile("data/programming_languages.csv") // read CSV file
-    headers <- csv.headers("paradigm", "name") // take headers of interest
+    headers <- csv.headers("paradigm", "name", "popularity") // take headers of interest
     rows   <- csv.rows(0 to 8) // take rows within [4, 9) so rows at index 4, 5, 6, 7, 8
     newCsv <- CSV.fromHeadersAndRows(headers, rows) // create new CSV file by joining cols and rows of interest
     _      <- newCsv.display // display CSV to validate your intentions
