@@ -1,5 +1,7 @@
 package com.ghurtchu
 
+import scala.util.Try
+
 package object csv {
 
   final case class Cell(index: Int, header: Header, value: String) {
@@ -23,8 +25,16 @@ package object csv {
       reprNormalized.split("], ").mkString("]\n")
     }
 
+    def filter(f: Cell => Boolean): Either[Throwable, Rows] = Try {
+      Rows {
+        values.filter { row =>
+          row.cells.exists(f)
+        }
+      }
+    }.toEither
+
     def toCSV(headers: Headers): Either[Throwable, CSV] =
-      CSV.fromHeadersAndRows(headers, this)
+      CSV.apply(headers, this)
   }
 
   final case class Header(value: String) {
@@ -67,7 +77,7 @@ package object csv {
         }
       }.map(Row.apply).toList
 
-      CSV.fromHeadersAndRows(Headers(headers), Rows(rows))
+      CSV.apply(Headers(headers), Rows(rows))
     }
   }
 

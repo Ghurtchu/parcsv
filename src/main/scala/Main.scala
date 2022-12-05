@@ -4,37 +4,34 @@ import csv.{CSV, Rows}
 
 object Main extends scala.App {
 
-  val filteredCSV = for {
-    csv    <- CSV.fromFile("data/programming_languages.csv") // read CSV file
-    headers <- csv.headers("paradigm", "name", "popularity") // take headers of interest
-    rows   <- csv.rows(0 to 8) // take rows within [4, 9) so rows at index 4, 5, 6, 7, 8
-    newCsv <- CSV.fromHeadersAndRows(headers, rows) // create new CSV file by joining cols and rows of interest
-    _      <- newCsv.display // display CSV to validate your intentions
-    _      <- newCsv.save("data/programming_languages_updated.csv") // save it
-  } yield newCsv
+  val transformedCSV = for {
+    originalCSV     <- CSV.fromFile("data/programming_languages.csv")
+    headers         <- originalCSV.headers("name", "popularity", "paradigm") // take headers of interest
+    rows            <- originalCSV.rows(5 to 15) // take rows within [0, 4) so rows at index 0, 1, 2, 3
+    functionalLangs <- rows.filter(_.value.contains("functional")) // take functional languages only
+    processedCSV    <- CSV(headers, functionalLangs) // create new CSV file by joining cols and rows of interest
+    _               <- processedCSV.display // display CSV to validate your intentions
+    _               <- processedCSV.save("data/programming_languages_updated.csv") // save it
+  } yield processedCSV
 
-  filteredCSV match {
-    case Right(v) => {
-      println()
-      println()
-    }
-    case _ =>
-  }
+  println("-" * 100)
 
 //  val csv2 = for {
 //    originalCSV <- CSV.fromString {
-//      """name,age,occupation
-//        |nika,23,software developer
-//        |toko,21,journalist
-//        |gio,18,student
+//      """name,age,occupation,fav_drink,fav_food
+//        |nika,23,software developer,cola,burger
+//        |toko,21,journalist,water,khinkali
+//        |gio,18,student,wine,sausage
 //        |""".stripMargin
 //    }
-//    columns <- originalCSV.columns("occupation", "name")
+//    columns <- originalCSV.columns("fav_food", "age", "name")
 //    newCsv <- columns.toCSV
 //    _ <- newCsv.display
 //    _ <- newCsv.save("data/people_updated.csv")
 //  } yield newCsv
-//
+
+  println("-" * 100)
+
 //  val csv3 = for {
 //    originalCSV <- CSV.fromMap {
 //      Map(
@@ -43,18 +40,12 @@ object Main extends scala.App {
 //        "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
 //      )
 //    }
-//    columns <- originalCSV.columns("band", "genre")
-//    newCsv <- columns.toCSV
+//    cols <- originalCSV.columns("band", "genre")
+//    newCsv <- cols.toCSV
 //    _ <- newCsv.display
 //    _ <- newCsv.save("data/bands_updated.csv")
 //  } yield newCsv
 
-//  val csv4 = for {
-//    csv <- CSV.fromFile("data/people.csv")
-//    rows <- csv.rows(0 to 10)
-//    newCsv <- rows.toCSV(csv.headers)
-//    _ <- newCsv.display
-//    _ <- newCsv.save("data/people_updated_2.csv")
-//  } yield newCsv
+  println("-" * 100)
 
 }

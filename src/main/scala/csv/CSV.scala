@@ -102,27 +102,29 @@ object CSV {
   def fromMap(map: Map[String, List[String]]): Either[Throwable, CSV] = Try {
     val headers = Headers(map.keys.map(Header.apply).toList)
 
+    val stringRows = (map.head._2.indices by 1).map { i =>
+      map.values
+        .map(cols => cols(i))
+    }
+
     val rows = Rows {
-      map.values.zipWithIndex.map { outer =>
-        val rowCells = outer._1
-        val index = outer._2
+      (for (i <- stringRows.indices) yield {
+        val stringCells = stringRows(i)
 
-        val cells: List[Cell] = rowCells.zip(headers.values).map { inner =>
-          val stringCell = inner._1
-          val header = inner._2
+        stringCells.zip(headers.values).map { cellWithHeader =>
+          val cellStr = cellWithHeader._1
+          val header = cellWithHeader._2
 
-          Cell(index, header, stringCell)
-        }
-
-        Row(cells)
-      }.toList
+          Cell(i, header, cellStr)
+        }.toList
+      }).map(Row.apply).toList
     }
 
     new CSV(headers, rows)
   }.toEither
 
   // I know it's mutable, be calm, it's real world baby!
-  def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
+  def apply(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
     val rowsBuffer = collection.mutable.ArrayBuffer.empty[Row]
 
     rows.values.foreach { row =>
@@ -181,13 +183,14 @@ object CSV {
 
             processed
           } else rawLine.split(",")
-        }.zipWithIndex.map { outer =>
-        val line = outer._1
-        val index = outer._2
+        }.zipWithIndex.map { lineWithIndex =>
+        val line = lineWithIndex._1
+        val index = lineWithIndex._2
 
-        line.zip(headers).map { inner =>
-          val word = inner._1
-          val header = inner._2
+        line.zip(headers).map { wordWithHeader =>
+          val word = wordWithHeader._1
+          val header = wordWithHeader._2
+          // put string in "quotes" if it contains comma
           val wordUpdated = if (word contains ",") s""""$word"""" else word
 
           Cell(index, header, wordUpdated)
