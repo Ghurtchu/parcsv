@@ -2,9 +2,8 @@ package com.ghurtchu
 package csv
 
 import api._
-import csv.impl.{CSVColumnSelector, CSVContentBuilder, CSVPrettifier, CSVRowSelector, CSVWriter}
+import csv.impl._
 
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 final class CSV private (override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
@@ -122,18 +121,17 @@ object CSV {
     new CSV(headers, rows)
   }.toEither
 
+  // I know it's mutable, be calm, it's real world baby!
   def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
     val rowsBuffer = collection.mutable.ArrayBuffer.empty[Row]
 
     rows.values.foreach { row =>
-      val sortedCells = collection.mutable.ArrayBuffer.empty[Cell]
+      val sortedCells = collection.mutable.Stack.empty[Cell]
 
-      val copiedCells = collection.mutable.Stack.empty[Cell]
-      row.cells.foreach(copiedCells.append)
+      val copiedCells = collection.mutable.Stack(row.cells: _*)
 
       headers.values.foreach { header =>
-        copiedCells.indices.foreach { i =>
-          val cell = copiedCells(i)
+        copiedCells.foreach { cell =>
           if (cell.header == header && !sortedCells.contains(cell)) {
             sortedCells append cell
           }
