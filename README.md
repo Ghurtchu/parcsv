@@ -32,28 +32,26 @@ Print result:
 
 ![My Image](screenshot.png)
 
-Let's see another example using Map as a source
+Let's see another example using Raw String as a source
 
 ```scala
 import com.ghurtchu.csv._
 
-val source = Map(
-  "food" -> ("apple" :: "egg" :: "potato" :: "sugar" :: Nil), 
-  "calories" -> ("52" :: "155" :: "77" :: "387" :: Nil),
-  "protein" -> ("0.3" :: "13" :: "4.3" :: "0" :: Nil),
-  "carbs" -> ("14" :: "1.1" :: "26" :: "100" :: Nil),
-  "isHealthy" -> ("true" :: "true" :: "true" :: "false" :: Nil)
-)
+val source =
+  """food,calories,protein,carbs,isHealthy
+    |apple,52,0.3,14,true
+    |egg,155,13,26,true
+    |potato,77,4.3,26,true
+    |sugar,387,0,100,false
+    |""".stripMargin
 
-val csv3 = for {
-  csv <- CSV.fromMap(source)
+val transformedCSV = for {
+  csv <- CSV.fromString(source)
   cols <- csv.withHeaders("food", "protein", "isHealthy")
-  lowProteinRows <- csv.rows.filter { cell =>
-    cell.header.value == "protein" && {
-    cell.value.toDouble <= 10
-    }
+  lowProteinFood <- csv.rows.filter { cell =>
+    cell.header.value == "protein" && cell.value.toDouble <= 10
   }
-  processedCSV <- cols <+> lowProteinRows
+  processedCSV <- cols <+> lowProteinFood
   _ <- processedCSV.display
 } yield processedCSV
 ```

@@ -16,23 +16,22 @@ object Main extends scala.App {
 
   println("--------")
 
-  val source = Map(
-    "food" -> ("apple" :: "egg" :: "potato" :: "sugar" :: Nil),
-    "calories" -> ("52" :: "155" :: "77" :: "387" :: Nil),
-    "protein" -> ("0.3" :: "13" :: "4.3" :: "0" :: Nil),
-    "carbs" -> ("14" :: "1.1" :: "26" :: "100" :: Nil),
-    "isHealthy" -> ("true" :: "true" :: "true" :: "false" :: Nil)
-  )
 
-  val csv3 = for {
-    csv <- CSV.fromMap(source)
-    cols <- csv.withHeaders("food", "protein", "isHealthy")
-    lowProteinRows <- csv.rows.filter { cell =>
-      cell.header.value == "protein" && {
-        cell.value.toDouble <= 10
-      }
+  val source =
+    """food,calories,protein,carbs,isHealthy
+      |apple,52,0.3,14,true
+      |egg,155,13,26,true
+      |potato,77,4.3,26,true
+      |sugar,387,0,100,false
+      |""".stripMargin
+
+  val transformedCSV2 = for {
+    csv <- CSV.fromString(source)
+    cols <- csv.withHeaders("isHealthy", "food", "protein")
+    lowProteinFood <- csv.rows.filter { cell =>
+      cell.header.value == "protein" && cell.value.toDouble <= 10
     }
-    processedCSV <- cols <+> lowProteinRows
+    processedCSV <- cols <+> lowProteinFood
     _ <- processedCSV.display
   } yield processedCSV
 
