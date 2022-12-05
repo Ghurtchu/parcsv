@@ -62,6 +62,5 @@ Print result:
 
 TODO:
  - slicing
- - merging
- - filtering
+ - add `CSVError` hierarchy to replace `Throwable` in `Either[Throwable, CSV]`
  - and much more...
