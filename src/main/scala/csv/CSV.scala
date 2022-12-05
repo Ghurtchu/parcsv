@@ -93,21 +93,27 @@ object CSV {
     new CSV(headers, rows)
   }.toEither
 
-//  def fromMap(map: Map[String, List[String]]): Either[Throwable, CSV] = Try {
-//    val headers = Headers(map.keys.map(Header.apply).toList)
-//
-//
-//    val rows = Rows {
-//      (map.head._2.indices by 1).map { i =>
-//        map.values
-//          .map(cols => cols(i))
-//          .map(Cell.apply)
-//          .toList
-//      }.map(Row.apply).toList
-//    }
-//
-//    new CSV(headers, rows)
-//  }.toEither
+  def fromMap(map: Map[String, List[String]]): Either[Throwable, CSV] = Try {
+    val headers = Headers(map.keys.map(Header.apply).toList)
+
+    //0 [nika, gio, zaza]
+    //1 [23, 17, 45]
+    val rows = map.values.zipWithIndex.map { outer =>
+      val rowCells = outer._1
+      val index = outer._2
+
+      val cells: List[Cell] = rowCells.zip(headers.values).map { inner =>
+        val stringCell = inner._1
+        val header = inner._2
+
+        Cell(index, header, stringCell)
+      }
+
+      Row(cells)
+    }.toList
+
+    new CSV(headers, Rows(rows))
+  }.toEither
 
   def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] =
     Try(new CSV(headers, rows))
@@ -120,12 +126,13 @@ object CSV {
       .toList
   }
 
-  private def extractRows(csv: String): Rows = Rows {
+  private def extractRows(csv: String): Rows = {
 
     val headers: Array[Header] = csv.takeWhile(_ != '\n')
       .split(",")
-      .map(Header.apply )
+      .map(Header.apply)
 
+    val rows = Rows {
       csv.dropWhile(_ != '\n')
         .tail
         .split("\n")
@@ -159,6 +166,9 @@ object CSV {
           Cell(index, header, word)
         }.toList
       }.map(Row.apply)
+    }
+
+    rows
   }
 }
 

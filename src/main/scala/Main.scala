@@ -27,19 +27,19 @@ object Main extends scala.App {
 //    _ <- newCsv.save("data/people_updated.csv")
 //  } yield newCsv
 
-//  val csv3 = for {
-//    originalCSV <- CSV.fromMap {
-//      Map(
-//        "band" -> ("necrophagist" :: "dying fetus" :: "brain drill" :: Nil),
-//        "genre" -> ("tech death" :: "brutal death" :: "chaotic tech death" :: Nil),
-//        "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
-//      )
-//    }
-//    columns <- originalCSV.columns("band")
-//    newCsv <- columns.toCSV
-//    _ <- newCsv.display
-//    _ <- newCsv.save("data/bands_updated.csv")
-//  } yield newCsv
+  val csv3 = for {
+    originalCSV <- CSV.fromMap {
+      Map(
+        "band" -> ("necrophagist" :: "dying fetus" :: "brain drill" :: Nil),
+        "genre" -> ("tech death" :: "brutal death" :: "chaotic tech death" :: Nil),
+        "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
+      )
+    }
+    columns <- originalCSV.columns("band", "genre")
+    newCsv <- columns.toCSV
+    _ <- newCsv.display
+    _ <- newCsv.save("data/bands_updated.csv")
+  } yield newCsv
 
 //  val csv4 = for {
 //    csv <- CSV.fromFile("data/people.csv")
