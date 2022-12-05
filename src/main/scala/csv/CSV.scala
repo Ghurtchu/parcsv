@@ -96,23 +96,23 @@ object CSV {
   def fromMap(map: Map[String, List[String]]): Either[Throwable, CSV] = Try {
     val headers = Headers(map.keys.map(Header.apply).toList)
 
-    //0 [nika, gio, zaza]
-    //1 [23, 17, 45]
-    val rows = map.values.zipWithIndex.map { outer =>
-      val rowCells = outer._1
-      val index = outer._2
+    val rows = Rows {
+      map.values.zipWithIndex.map { outer =>
+        val rowCells = outer._1
+        val index = outer._2
 
-      val cells: List[Cell] = rowCells.zip(headers.values).map { inner =>
-        val stringCell = inner._1
-        val header = inner._2
+        val cells: List[Cell] = rowCells.zip(headers.values).map { inner =>
+          val stringCell = inner._1
+          val header = inner._2
 
-        Cell(index, header, stringCell)
-      }
+          Cell(index, header, stringCell)
+        }
 
-      Row(cells)
-    }.toList
+        Row(cells)
+      }.toList
+    }
 
-    new CSV(headers, Rows(rows))
+    new CSV(headers, rows)
   }.toEither
 
   def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] =
