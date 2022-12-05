@@ -5,16 +5,16 @@ import csv.{CSV, Rows}
 object Main extends scala.App {
 
   val transformedCSV = for {
-    originalCSV     <- CSV.fromFile("data/programming_languages.csv")
-    headers         <- originalCSV.headers("name", "popularity", "paradigm") // take headers of interest
-    rows            <- originalCSV.rows(5 to 15) // take rows within [0, 4) so rows at index 0, 1, 2, 3
-    functionalLangs <- rows.filter(_.value.contains("functional")) // take functional languages only
+    originalCSV     <- CSV.fromFile("data/programming_languages.csv") // read file from system
+    headers         <- originalCSV.headers("name", "popularity", "paradigm") // choose the headers of your interest
+    rows            <- originalCSV.rows(3 to 7) // take rows within [3, 7) so rows at index [3, 4, 5, 6]
+    functionalLangs <- rows.filter(_.value.contains("functional")) // take languages which support "functional" paradigm
     processedCSV    <- CSV(headers, functionalLangs) // create new CSV file by joining cols and rows of interest
     _               <- processedCSV.display // display CSV to validate your intentions
-    _               <- processedCSV.save("data/programming_languages_updated.csv") // save it
+    _               <- processedCSV.save("data/programming_languages_updated.csv") // save it as a file
   } yield processedCSV
 
-  println("-" * 100)
+
 
 //  val csv2 = for {
 //    originalCSV <- CSV.fromString {
@@ -30,8 +30,6 @@ object Main extends scala.App {
 //    _ <- newCsv.save("data/people_updated.csv")
 //  } yield newCsv
 
-  println("-" * 100)
-
 //  val csv3 = for {
 //    originalCSV <- CSV.fromMap {
 //      Map(
@@ -45,7 +43,5 @@ object Main extends scala.App {
 //    _ <- newCsv.display
 //    _ <- newCsv.save("data/bands_updated.csv")
 //  } yield newCsv
-
-  println("-" * 100)
 
 }
