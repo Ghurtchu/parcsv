@@ -126,50 +126,40 @@ object CSV {
       .split(",")
       .map(Header.apply )
 
-    val processed: List[Array[String]] = csv.dropWhile(_ != '\n')
-      .tail
-      .split("\n")
-      .toList
-      .map { rawLine =>
-        val data: Array[String] = rawLine.split("\"").filter(_ != ",")
-        if (data.length > 1) {
-          val processed = data.flatMap { each =>
-            if (each.endsWith(",")) {
-              val str = each.substring(0, each.length - 1)
+      csv.dropWhile(_ != '\n')
+        .tail
+        .split("\n")
+        .toList
+        .map { rawLine =>
+          val splitted: Array[String] = rawLine.split("\"").filter(_ != ",")
+          if (splitted.length > 1) {
+            val processed = splitted.flatMap { each =>
+              if (each.endsWith(",")) {
+                val normalFirstCase = each.substring(0, each.length - 1)
 
-              Array(str)
-            } else if (each.startsWith(",")) {
-              val str = each.drop(1)
+                Array(normalFirstCase)
+              } else if (each.startsWith(",")) {
+                val normalSecondCase = each.drop(1)
 
-              str.split(",")
+                normalSecondCase.split(",")
+              }
+              else Array(each)
             }
-            else {
-              Array(each)
-            }
-          }
 
-          processed
-        } else {
-          rawLine.split(",")
-        }
-      }
+            processed
+          } else rawLine.split(",")
+        }.zipWithIndex.map { outer =>
+        val line = outer._1
+        val index = outer._2
 
-    val cells: List[List[Cell]] = processed.zipWithIndex.map { outer =>
-      val line = outer._1
-      val index = outer._2
+        line.zip(headers).map { inner =>
+          val word = inner._1
+          val header = inner._2
 
-      line.zip(headers).map { inner =>
-        val word = inner._1
-        val header = inner._2
-
-        Cell(index, header, word)
-      }.toList
-
-    }
-
-    cells.map(Row.apply)
+          Cell(index, header, word)
+        }.toList
+      }.map(Row.apply)
   }
-
 }
 
 
