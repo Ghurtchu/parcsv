@@ -2,12 +2,8 @@ package com.ghurtchu
 
 package object csv {
 
-  final case class Cell(value: String) {
+  final case class Cell(index: Int, header: Header, value: String) {
     override def toString: String = value
-  }
-
-  object Cell {
-    def empty: Cell = new Cell("")
   }
 
   final case class Row(cells: List[Cell]) {

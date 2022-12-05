@@ -1,12 +1,12 @@
 package com.ghurtchu
 
-import csv.CSV
+import csv.{CSV, Rows}
 
 object Main extends scala.App {
 
   val filteredCSV = for {
     csv    <- CSV.fromFile("data/programming_languages.csv") // read CSV file
-    cols   <- csv.columns("name", "paradigm", "creator") // take only 3 columns of interest
+    cols   <- csv.columns("paradigm", "name", "creator") // take only 3 columns of interest
     rows   <- csv.rows(0 to 4) // take rows within [4, 9) so rows at index 4, 5, 6, 7, 8
     newCsv <- csv.merge(cols, rows) // create new CSV file by joining cols and rows of interest
     _      <- newCsv.display // display CSV to validate your intentions
