@@ -4,6 +4,7 @@ package csv
 import api._
 import csv.impl.{CSVColumnSelector, CSVContentBuilder, CSVPrettifier, CSVRowSelector, CSVWriter}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 final class CSV private (override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
@@ -17,6 +18,12 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
   override val content: Content =
     CSVContentBuilder(headers, rows)
       .content
+
+  def headers(names: String*): Either[Throwable, Headers] = Try {
+    Headers {
+      names.map(Header.apply).toList
+    }
+  }.toEither
 
   override def column(name: String): Option[Column] =
     CSVColumnSelector(headerPlaceMapping, headers, rows)
@@ -115,9 +122,32 @@ object CSV {
     new CSV(headers, rows)
   }.toEither
 
-  def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] =
-    Try(new CSV(headers, rows))
+  def fromHeadersAndRows(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
+    val strHeaders: List[String] = headers.values.map(_.value)
+    val rowsBuffer = collection.mutable.ArrayBuffer.empty[Row]
+
+    rows.values.foreach { row =>
+      val updatedBuffer = collection.mutable.ArrayBuffer.empty[Cell]
+
+      val copiedBuffer = collection.mutable.ArrayBuffer.empty[Cell]
+      row.cells.foreach(copiedBuffer.append)
+
+      strHeaders.foreach { header =>
+        for (i <- copiedBuffer.indices) {
+          val cell = copiedBuffer(i)
+          if (cell.header.value == header && !updatedBuffer.contains(cell)) {
+            updatedBuffer append cell
+          }
+        }
+      }
+
+      rowsBuffer.append(Row(updatedBuffer.toList))
+    }
+
+    val updatedRows = Rows(rowsBuffer.toList)
+    Try(new CSV(headers, updatedRows))
       .toEither
+  }
 
   private def extractHeaders(csv: String): Headers = Headers {
     csv.takeWhile(_ != '\n')
@@ -162,8 +192,9 @@ object CSV {
         line.zip(headers).map { inner =>
           val word = inner._1
           val header = inner._2
+          val wordUpdated = if (word contains ",") s""""$word"""" else word
 
-          Cell(index, header, word)
+          Cell(index, header, wordUpdated)
         }.toList
       }.map(Row.apply)
     }

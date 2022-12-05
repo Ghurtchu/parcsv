@@ -1,5 +1,8 @@
-name,paradigm,creator
-Scala,object-oriented, functional,Martin Odersky
-Java,object-oriented,James Gosling
-Python,object-oriented,Guido van Rossum
-JavaScript,nobody knows :),Brendan Eich
+paradigm,name
+"object-oriented, functional",Scala
+object-oriented,Java
+object-oriented,Python
+nobody knows :),JavaScript
+object-oriented,C#
+functional,Haskell
+procedural,C

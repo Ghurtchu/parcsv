@@ -1,4 +1,4 @@
-name,occupation
-nika,software developer
-toko,journalist
-gio,student
+occupation,name
+software developer,nika
+journalist,toko
+student,gio
