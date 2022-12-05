@@ -12,7 +12,7 @@ private[csv] class CSVRowSelector(private val rows: Rows) extends CanSelectRow {
     Try(rows.values(index))
       .toOption
 
-  override def rows(range: Range): Either[Throwable, Rows] = Try {
+  override def withRows(range: Range): Either[Throwable, Rows] = Try {
     Rows {
       rows
         .values

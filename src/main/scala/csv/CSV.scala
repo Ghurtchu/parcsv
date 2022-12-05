@@ -18,7 +18,7 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     CSVContentBuilder(headers, rows)
       .content
 
-  def headers(names: String*): Either[Throwable, Headers] = Try {
+  def withHeaders(names: String*): Either[Throwable, Headers] = Try {
     Headers {
       names.map(Header.apply).toList
     }
@@ -50,9 +50,9 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
 
   def display: Either[Throwable, Unit] = Try(println(this)).toEither
 
-  override def rows(range: Range): Either[Throwable, Rows] =
+  override def withRows(range: Range): Either[Throwable, Rows] =
     CSVRowSelector(rows)
-      .rows(range)
+      .withRows(range)
 
   def rows(indices: Int*): Either[Throwable, Rows] =
     CSVRowSelector(rows)

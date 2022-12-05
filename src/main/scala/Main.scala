@@ -5,42 +5,35 @@ import csv._
 object Main extends scala.App {
 
   val transformedCSV = for {
-    originalCSV     <- CSV.fromFile("data/programming_languages.csv") // read file
-    headers         <- originalCSV.headers("name", "popularity", "paradigm") // choose headers
-    rows            <- originalCSV.rows(3 to 7) // filter rows by indexes
-    functionalLangs <- rows.filter(_.value.contains("functional")) // take languages which support "functional" paradigm
+    csv             <- CSV.fromFile("data/programming_languages.csv")
+    headers         <- csv.withHeaders("name", "popularity", "paradigm")
+    rows            <- csv.withRows(3 to 7)
+    functionalLangs <- rows.filter(_.value.contains("functional"))
     processedCSV    <- headers <+> functionalLangs // join headers and rows to get new CSV
-    _               <- processedCSV.display // display it to validate your intentions
-    _               <- processedCSV.save("data/programming_languages_updated.csv") // save it as a file
+    _               <- processedCSV.display
+    _               <- processedCSV.save("data/programming_languages_updated.csv")
   } yield processedCSV
 
+  println("--------")
 
-//  val csv2 = for {
-//    originalCSV <- CSV.fromString {
-//      """name,age,occupation,fav_drink,fav_food
-//        |nika,23,software developer,cola,burger
-//        |toko,21,journalist,water,khinkali
-//        |gio,18,student,wine,sausage
-//        |""".stripMargin
-//    }
-//    columns <- originalCSV.columns("fav_food", "age", "name")
-//    newCsv <- columns.toCSV
-//    _ <- newCsv.display
-//    _ <- newCsv.save("data/people_updated.csv")
-//  } yield newCsv
+  val source = Map(
+    "food" -> ("apple" :: "egg" :: "potato" :: "sugar" :: Nil),
+    "calories" -> ("52" :: "155" :: "77" :: "387" :: Nil),
+    "protein" -> ("0.3" :: "13" :: "4.3" :: "0" :: Nil),
+    "carbs" -> ("14" :: "1.1" :: "26" :: "100" :: Nil),
+    "isHealthy" -> ("true" :: "true" :: "true" :: "false" :: Nil)
+  )
 
-//  val csv3 = for {
-//    originalCSV <- CSV.fromMap {
-//      Map(
-//        "band" -> ("necrophagist" :: "dying fetus" :: "brain drill" :: Nil),
-//        "genre" -> ("tech death" :: "brutal death" :: "chaotic tech death" :: Nil),
-//        "lead_singer" -> ("Muammed Suicmez" :: "John Gallagher" :: "idk" :: Nil)
-//      )
-//    }
-//    cols <- originalCSV.columns("band", "genre")
-//    newCsv <- cols.toCSV
-//    _ <- newCsv.display
-//    _ <- newCsv.save("data/bands_updated.csv")
-//  } yield newCsv
+  val csv3 = for {
+    csv <- CSV.fromMap(source)
+    cols <- csv.withHeaders("food", "protein", "isHealthy")
+    lowProteinRows <- csv.rows.filter { cell =>
+      cell.header.value == "protein" && {
+        cell.value.toDouble <= 10
+      }
+    }
+    processedCSV <- cols <+> lowProteinRows
+    _ <- processedCSV.display
+  } yield processedCSV
 
 }
