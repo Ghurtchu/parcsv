@@ -27,11 +27,11 @@ object Main extends scala.App {
 
   val transformedCSV2 = for {
     csv <- CSV.fromString(source)
-    cols <- csv.withHeaders("isHealthy", "food", "protein")
+    headers <- csv.withHeaders("isHealthy", "food", "protein")
     lowProteinFood <- csv.rows.filter { cell =>
       cell.header.value == "protein" && cell.value.toDouble <= 10
     }
-    processedCSV <- cols <+> lowProteinFood
+    processedCSV <- headers <+> lowProteinFood
     _ <- processedCSV.display
   } yield processedCSV
 

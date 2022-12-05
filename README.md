@@ -47,11 +47,11 @@ val source =
 
 val transformedCSV = for {
   csv <- CSV.fromString(source)
-  cols <- csv.withHeaders("food", "protein", "isHealthy")
+  headers <- csv.withHeaders("food", "protein", "isHealthy")
   lowProteinFood <- csv.rows.filter { cell =>
     cell.header.value == "protein" && cell.value.toDouble <= 10
   }
-  processedCSV <- cols <+> lowProteinFood
+  processedCSV <- headers <+> lowProteinFood
   _ <- processedCSV.display
 } yield processedCSV
 ```
