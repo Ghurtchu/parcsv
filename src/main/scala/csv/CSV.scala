@@ -8,7 +8,7 @@ import scala.util.Try
 
 final class CSV private (override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
 
-  private val headerPlaceMapping: Map[Header, Int] =
+  private lazy val headerPlaceMapping: Map[Header, Int] =
     headers
       .values
       .zipWithIndex
@@ -34,7 +34,7 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
 
   override def slice(rowRange: Range, colRange: Range): List[List[String]] = ???
 
-  override val toString: String =
+  override lazy val toString: String =
     CSVPrettifier(CSVColumnSelector.apply(headerPlaceMapping, headers, rows))
       .prettify
 
