@@ -95,11 +95,9 @@ object CSV {
       (for (i <- stringRows.indices) yield {
         val stringCells = stringRows(i)
 
-        stringCells.zip(headers.values).map { cellWithHeader =>
-          val cellStr = cellWithHeader._1
-          val header = cellWithHeader._2
+        stringCells.zip(headers.values).map { case (strCell, header) =>
 
-          Cell(i, header, cellStr)
+          Cell(i, header, strCell)
         }.toList
       }).map(Row.apply).toList
     }
@@ -167,13 +165,8 @@ object CSV {
 
             processed
           } else rawLine.split(",")
-        }.zipWithIndex.map { lineWithIndex =>
-        val line = lineWithIndex._1
-        val index = lineWithIndex._2
-
-        line.zip(headers).map { wordWithHeader =>
-          val word = wordWithHeader._1
-          val header = wordWithHeader._2
+        }.zipWithIndex.map { case (line, index) =>
+        line.zip(headers).map { case (word, header) =>
           // put string in "quotes" if it contains comma
           val wordUpdated = if (word contains ",") s""""$word"""" else word
 

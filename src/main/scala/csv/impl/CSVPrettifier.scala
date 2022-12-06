@@ -9,7 +9,8 @@ private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelecto
                                  private val rows: Rows) extends CanPrettify {
 
   override def prettify: String = {
-    val maxLengthPerColumn = headers.values.map(_.value).map { header =>
+
+    val maxLengthPerColumn: List[Int] = headers.values.map(_.value).map { header =>
       csvColumnSelector.column(header)
         .fold(0) { col =>
           (header :: col.cells
@@ -19,22 +20,18 @@ private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelecto
         }
     }
 
-    val concatenatedHeaders: String = maxLengthPerColumn.zip(headers.values).map { mh =>
-      val length = mh._1
-      val header = mh._2
+    val concatenatedHeaders: String = maxLengthPerColumn.zip(headers.values).map { case (length, header) =>
 
       header.value concat (" " * (length - header.value.length)) concat " | "
     }.reduce(_ concat _)
 
     val stringifiedRows: List[List[String]] = rows.values.map(_.cells.map(_.value))
 
-    val concatenatedRows: String = stringifiedRows.zip(List.fill(stringifiedRows.size)(maxLengthPerColumn)).map { sm =>
-      val row = sm._1
-      val lengths = sm._2
+    val concatenatedRows: String = stringifiedRows.map { rows =>
 
-      (for (i <- row.indices) yield {
-        val cell = row(i)
-        val length = lengths(i)
+      (for (i <- rows.indices) yield {
+        val cell = rows(i)
+        val length = maxLengthPerColumn(i)
 
         cell concat " " * (length - cell.length) concat " | "
       }).reduce(_ concat _)

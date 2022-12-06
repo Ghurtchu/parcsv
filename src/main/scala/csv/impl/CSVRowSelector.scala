@@ -23,8 +23,7 @@ private[csv] class CSVRowSelector(private val rows: Rows) extends CanSelectRow {
   def rows(indices: Int*): Either[Throwable, Rows] = Try {
     Rows {
       rows.values
-        .zipWithIndex.filter { rowWithIndex =>
-        val ind = rowWithIndex._2
+        .zipWithIndex.filter { case (_, ind) =>
 
         indices contains ind
       }.map(_._1)
