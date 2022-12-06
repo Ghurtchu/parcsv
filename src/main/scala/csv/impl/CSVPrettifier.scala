@@ -19,29 +19,30 @@ private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelecto
         }
     }
 
-    val concatenatedHeaders: String = maxLengthPerColumn.zip(headers.values).map { tup =>
-      val length = tup._1
-      val header = tup._2
+    val concatenatedHeaders: String = maxLengthPerColumn.zip(headers.values).map { mh =>
+      val length = mh._1
+      val header = mh._2
 
       header.value concat (" " * (length - header.value.length)) concat " | "
     }.reduce(_ concat _)
 
     val stringifiedRows: List[List[String]] = rows.values.map(_.cells.map(_.value))
 
-    val concatenatedRows: String = (stringifiedRows.zip(List.fill(stringifiedRows.size)(maxLengthPerColumn)).map { tup =>
-      val row = tup._1
-      val lengths = tup._2
+    val concatenatedRows: String = stringifiedRows.zip(List.fill(stringifiedRows.size)(maxLengthPerColumn)).map { sm =>
+      val row = sm._1
+      val lengths = sm._2
 
       (for (i <- row.indices) yield {
         val cell = row(i)
         val length = lengths(i)
 
-        cell + " " * (length - cell.length) + " | "
+        cell concat " " * (length - cell.length) concat " | "
       }).reduce(_ concat _)
-    }).reduce((row1, row2) => row1 concat "\n" concat row2)
+    }.reduce(_ concat "\n" concat _)
 
-
-    concatenatedHeaders concat "\n" concat "-" * (concatenatedHeaders.length - 1) concat "\n" concat concatenatedRows
+    concatenatedHeaders
+      .concat("\n".concat("-" * (concatenatedHeaders.length - 1)).concat("\n"))
+      .concat(concatenatedRows)
   }
 }
 

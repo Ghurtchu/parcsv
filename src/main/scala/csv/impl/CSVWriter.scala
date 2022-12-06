@@ -14,6 +14,7 @@ private[csv] final class CSVWriter(private val content: Content) extends CanWrit
       Try {
         val writer = new BufferedWriter(new FileWriter(new File(fileName)))
         writer.write(content.data)
+
         writer.close()
       }.isSuccess
     }.toEither

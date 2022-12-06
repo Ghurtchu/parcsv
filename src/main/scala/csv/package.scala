@@ -7,10 +7,11 @@ package object csv {
   sealed trait Mergeable
 
   implicit class MergeableOps(self: Mergeable) {
+
     def <+>(that: Mergeable): Either[Throwable, CSV] = (self, that) match {
       case (Headers(h), Rows(r)) => CSV(Headers(h), Rows(r))
       case (Rows(r), Headers(h)) => CSV(Headers(h), Rows(r))
-      case _ => Left(new RuntimeException("Merge operation can not be performed"))
+      case _                     => Left(new RuntimeException("Merge operation can not be performed"))
     }
   }
 
@@ -19,6 +20,7 @@ package object csv {
   }
 
   final case class Row(cells: List[Cell]) {
+
     override def toString: String = {
       val repr = cells.map(_.toString).toString
       val reprNormalized = repr.substring(5, repr.length - 1)
@@ -28,6 +30,7 @@ package object csv {
   }
 
   final case class Rows(values: List[Row]) extends Mergeable {
+
     override def toString: String = {
       val repr = values.map(_.toString).toString
       val reprNormalized = repr.substring(5, repr.length - 1)
@@ -38,13 +41,12 @@ package object csv {
     def filter(f: Cell => Boolean): Either[Throwable, Rows] = Try {
       Rows {
         values.filter { row =>
-          row.cells.exists(f)
+          row
+            .cells
+            .exists(f)
         }
       }
     }.toEither
-
-    def toCSV(headers: Headers): Either[Throwable, CSV] =
-      CSV.apply(headers, this)
   }
 
   final case class Header(value: String) {
@@ -52,6 +54,7 @@ package object csv {
   }
 
   final case class Headers(values: List[Header]) extends Mergeable {
+
     override def toString: String = {
       val repr = values.map(_.toString).toString
       val reprNormalized = repr.substring(5, repr.length - 1)
@@ -65,6 +68,7 @@ package object csv {
   }
 
   final case class Column(header: Header, cells: List[Cell]) {
+
     override def toString: String = {
       val repr = cells.map(_.toString).toString
       val reprNormalized = repr.substring(5, repr.length - 1)

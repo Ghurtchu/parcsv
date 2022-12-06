@@ -1,3 +1,5 @@
-name,popularity,paradigm
-Scala,Moderate,"object-oriented, functional"
-Haskell,Low,functional
+name,popularity,paradigm,creator
+Scala,Moderate,"object-oriented, functional",Martin Odersky
+C#,High,object-oriented,Anders Hejlsberg
+Haskell,Low,functional,Simon Peyton Jones
+C,Moderate,procedural,Dennis Ritchie

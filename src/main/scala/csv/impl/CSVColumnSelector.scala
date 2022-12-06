@@ -21,9 +21,13 @@ private[csv] class CSVColumnSelector(val headerPlaceMapping: Map[Header, Int],
     }
   }
 
-  override def columns(names: String*): Either[Throwable, Columns] =
-    Try(Columns(names.toList.flatMap(column)))
-      .toEither
+  override def columns(names: String*): Either[Throwable, Columns] = Try {
+    Columns {
+      names
+        .toList
+        .flatMap(column)
+    }
+  }.toEither
 
 }
 
