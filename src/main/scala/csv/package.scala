@@ -116,54 +116,37 @@ package object csv {
     }
   }
 
-  sealed trait Pipe
-
 //  implicit class ListPipelineOps(self: List[Pipeline]) {
 //    def ~>(that: Pipeline): List[Pipeline] = self :+ that
 //  }
 
-  implicit class SeqPipelineOps(selves: Seq[Pipe]) {
-    def ~>(that: Pipe): Seq[Pipe] = selves :+ that
-    def ++(them: Seq[Pipe]): Seq[Pipe] = selves ++ them
+  implicit class SeqPipelineOps(selves: Seq[UntypedPipe]) {
+    def ~>(that: UntypedPipe): Seq[UntypedPipe] = selves :+ that
+    def ++(them: Seq[UntypedPipe]): Seq[UntypedPipe] = selves ++ them
   }
 
-  implicit class PipelineOps(self: Pipe) {
-    def ~>(that: Pipe): Seq[Pipe] = self :: that :: Nil
-    def ++(them: Seq[Pipe]): Seq[Pipe] = self +: them
+  implicit class PipelineOps(self: UntypedPipe) {
+    def ~>(that: UntypedPipe): Seq[UntypedPipe] = self :: that :: Nil
+    def ++(them: Seq[UntypedPipe]): Seq[UntypedPipe] = self +: them
   }
 
-//  abstract sealed class TransformPipe[A, B] extends Pipeline[A, B] {
-//    def isEmpty: Boolean = functions.isEmpty
-//
-//    def head: A => B = functions.head
-//
-//    def tail: TransformPipe[A, B]
-//  }
+  type UntypedPipe = Pipe[_, _]
 
-  final case class TransformColumnPipe(functions: Column => Column*) extends Pipe {
-    def head: Column => Column = functions.head
-    def tail: TransformColumnPipe = TransformColumnPipe(functions.tail: _*)
-    def isEmpty: Boolean = functions.isEmpty
+  sealed trait Pipe[-A, +B] {
+    def functions: Seq[A => B]
+    def tail: Seq[A => B]
   }
 
-//  abstract sealed class FilterPipe[A] extends Pipeline[A, Boolean] {
-//    def isEmpty: Boolean = functions.isEmpty
-//
-//    def head: A => Boolean = functions.head
-//
-//    def tail: FilterPipe[A]
-//  }
-
-  final case class FilterColumnPipe(functions: Column => Boolean*) extends Pipe {
-    def tail: FilterColumnPipe = FilterColumnPipe(functions.tail: _*)
-    def isEmpty: Boolean = functions.isEmpty
-    def head: Column => Boolean = functions.head
+  final case class TransformColumnPipe(override val functions: Column => Column*) extends Pipe[Column, Column] {
+    override def tail: Seq[Column => Column] = functions.tail
   }
 
-  final case class FilterRowPipe(functions: Row => Boolean*) extends Pipe {
-    def tail: FilterRowPipe = FilterRowPipe(functions.tail: _*)
-    def isEmpty: Boolean = functions.isEmpty
-    def head: Row => Boolean = functions.head
+  final case class FilterColumnPipe(override val functions: Column => Boolean*) extends   Pipe[Column, Boolean] {
+    override def tail: Seq[Column => Boolean] = functions.tail
+  }
+
+  final case class FilterRowPipe(override val functions: Row => Boolean*) extends         Pipe[Row, Boolean] {
+    override def tail: Seq[Row => Boolean] = functions.tail
   }
 
 }

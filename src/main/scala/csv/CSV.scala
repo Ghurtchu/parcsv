@@ -123,14 +123,14 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
 
     @tailrec
     def loop(currentCSV: CSV, currentColumns: Columns, pipe: FilterColumnPipe): Either[Throwable, CSV] = {
-      if (pipe.isEmpty) Right(currentCSV)
+      if (pipe.functions.isEmpty) Right(currentCSV)
       else {
-        val predicate = pipe.head
+        val predicate = pipe.functions.head
         val newColumns = Columns(currentColumns.values.filter(predicate))
 
         newColumns.toCSV match {
           case Left(err) => Left(err)
-          case Right(csv) => loop(csv, newColumns, pipe.tail)
+          case Right(csv) => loop(csv, newColumns, FilterColumnPipe(pipe.tail: _*))
         }
       }
     }
@@ -162,14 +162,14 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
 
     @tailrec
     def loop(currentCSV: CSV, currentColumns: Columns, pipe: TransformColumnPipe): Either[Throwable, CSV] = {
-      if (pipe.isEmpty) Right(currentCSV)
+      if (pipe.functions.isEmpty) Right(currentCSV)
       else {
-        val transformer = pipe.head
+        val transformer = pipe.functions.head
         val newCols = Columns(currentColumns.values.map(transformer))
 
         newCols.toCSV match {
           case Left(err) => Left(err)
-          case Right(csv) => loop(csv, newCols, pipe.tail)
+          case Right(csv) => loop(csv, newCols, TransformColumnPipe(pipe.tail: _*))
         }
       }
     }
@@ -231,14 +231,14 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
 
     @tailrec
     def loop(currentCSV: CSV, currentRows: Rows, currentFilterRowPipe: FilterRowPipe): Either[Throwable, CSV] = {
-      if (currentFilterRowPipe.isEmpty) Right(currentCSV)
+      if (currentFilterRowPipe.functions.isEmpty) Right(currentCSV)
       else {
-        val predicate = currentFilterRowPipe.head
+        val predicate = currentFilterRowPipe.functions.head
         val newRows = Rows(currentRows.values.filter(predicate))
         val newHeaders = Headers(newRows.values.head.cells.map(_.header))
 
         CSV(newHeaders, newRows) match {
-          case Right(csv) => loop(csv, newRows, currentFilterRowPipe.tail)
+          case Right(csv) => loop(csv, newRows, FilterRowPipe(currentFilterRowPipe.tail: _*))
           case Left(err)  => Left(err)
         }
       }
@@ -247,10 +247,10 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     loop(csv, csv.rows, filterRowPipe)
   }
 
-  def transformVia(pipeline: Seq[Pipe]): Either[Throwable, CSV] = {
+  def transformVia(pipeline: Seq[UntypedPipe]): Either[Throwable, CSV] = {
 
     @tailrec
-    def loop(csv: CSV, currPipeline: Seq[Pipe]): Either[Throwable, CSV] = {
+    def loop(csv: CSV, currPipeline: Seq[UntypedPipe]): Either[Throwable, CSV] = {
       if (currPipeline.isEmpty) Right(csv)
       else {
         currPipeline.head match {
