@@ -6,7 +6,7 @@ object Main extends scala.App {
 
   val transformedCSV = for {
     csv          <- CSV.fromFile("data/programming_languages.csv")
-    headers      <- csv.withHeaders("paradigm", "name", "creator")
+    headers      <- csv.withHeaders("paradigm", "creator", "name", "popularity")
     rows         <- csv.withRows(3 to 7)
     rowsFiltered <- rows.filter(_.value.contains("functional"))
     processedCSV <- headers <+> rowsFiltered // join headers and rows to create new CSV

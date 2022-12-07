@@ -67,8 +67,7 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     val transformedHeaders = Headers {
       headers
         .values
-        .map(f)
-        .map(Header.apply)
+        .map(Header.apply compose f)
     }
 
     new CSV(transformedHeaders, rows)
@@ -118,7 +117,8 @@ object CSV {
     val headers = Headers(map.keys.map(Header.apply).toList)
 
     val stringRows = (map.head._2.indices by 1).map { i =>
-      map.values
+      map
+        .values
         .map(cols => cols(i))
     }
 

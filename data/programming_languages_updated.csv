@@ -1,3 +1,3 @@
-paradigm,name,creator
-"object-oriented, functional",Scala,Martin Odersky
-functional,Haskell,Simon Peyton Jones
+paradigm,creator,name,popularity
+"object-oriented, functional",Martin Odersky,Scala,Moderate
+functional,Simon Peyton Jones,Haskell,Low
