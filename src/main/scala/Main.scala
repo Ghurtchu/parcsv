@@ -20,11 +20,11 @@ object Main extends scala.App {
     col => Column(col.header, col.cells.map(cell => Cell(cell.index, cell.header, cell.value.toUpperCase)))
   )
 
-  val pipe = Seq(filterColumnPipe, filterRowPipe)
+  val fullPipe: Seq[Pipe] = filterColumnPipe ~> filterRowPipe ~> transformColumnPipe
 
   val transformedCSV = for {
     csv         <- CSV.fromFile("data/programming_languages.csv")
-    transformed <- csv.transformVia(pipe)
+    transformed <- csv.transformVia(fullPipe)
     _           <- transformed.display
     _           <- transformed.save("data/updated.csv")
   } yield transformed

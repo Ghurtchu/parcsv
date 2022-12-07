@@ -223,10 +223,10 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     loop(this, rows, filterRowPipe)
   }
 
-  def transformVia(pipeline: Seq[Pipeline]): Either[Throwable, CSV] = {
+  def transformVia(pipeline: Seq[Pipe]): Either[Throwable, CSV] = {
 
     @tailrec
-    def loop(csv: CSV, currPipeline: Seq[Pipeline]): Either[Throwable, CSV] = {
+    def loop(csv: CSV, currPipeline: Seq[Pipe]): Either[Throwable, CSV] = {
       if (currPipeline.isEmpty) Right(csv)
       else {
         currPipeline.head match {

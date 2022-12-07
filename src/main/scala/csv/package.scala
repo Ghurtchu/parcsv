@@ -116,7 +116,24 @@ package object csv {
     }
   }
 
-  sealed trait Pipeline
+  sealed trait Pipe
+
+//  implicit class ListPipelineOps(self: List[Pipeline]) {
+//    def ~>(that: Pipeline): List[Pipeline] = self :+ that
+//  }
+
+  implicit class SeqPipelineOps(selves: Seq[Pipe]) {
+    def ~>(that: Pipe): Seq[Pipe] = selves :+ that
+    def ++(them: Seq[Pipe]): Seq[Pipe] = selves ++ them
+  }
+
+  implicit class PipelineOps(self: Pipe) {
+    def ~>(that: Pipe): Seq[Pipe] = self :: that :: Nil
+    def ++(them: Seq[Pipe]): Seq[Pipe] = self +: them
+
+    implicit def pipelineToList(pipeline: Pipe): List[Pipe] =
+      List(pipeline)
+  }
 
 //  abstract sealed class TransformPipe[A, B] extends Pipeline[A, B] {
 //    def isEmpty: Boolean = functions.isEmpty
@@ -126,8 +143,8 @@ package object csv {
 //    def tail: TransformPipe[A, B]
 //  }
 
-  final case class TransformColumnPipe(functions: Column => Column*) extends Pipeline {
-    def tail: Pipeline = TransformColumnPipe(functions.tail: _*)
+  final case class TransformColumnPipe(functions: Column => Column*) extends Pipe {
+    def tail: Pipe = TransformColumnPipe(functions.tail: _*)
   }
 
 //  abstract sealed class FilterPipe[A] extends Pipeline[A, Boolean] {
@@ -138,13 +155,13 @@ package object csv {
 //    def tail: FilterPipe[A]
 //  }
 
-  final case class FilterColumnPipe(functions: Column => Boolean*) extends Pipeline {
+  final case class FilterColumnPipe(functions: Column => Boolean*) extends Pipe {
     def tail: FilterColumnPipe = FilterColumnPipe(functions.tail: _*)
     def isEmpty: Boolean = functions.isEmpty
     def head: Column => Boolean = functions.head
   }
 
-  final case class FilterRowPipe(functions: Row => Boolean*) extends Pipeline {
+  final case class FilterRowPipe(functions: Row => Boolean*) extends Pipe {
     def tail: FilterRowPipe = FilterRowPipe(functions.tail: _*)
     def isEmpty: Boolean = functions.isEmpty
     def head: Row => Boolean = functions.head
