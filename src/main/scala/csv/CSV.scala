@@ -26,6 +26,9 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     }
   }.toEither
 
+  def filterHeaders(predicate: Header => Boolean): Either[Throwable, Headers] =
+    headers.filter(predicate)
+
   override def column(name: String): Option[Column] =
     CSVColumnSelector(headerPlaceMapping, headers, rows)
       .column(name)
@@ -50,11 +53,39 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     CSVColumnSelector(headerPlaceMapping, headers, rows)
       .columns(names: _*)
 
+  def filterColumns(f: Column => Boolean): Either[Throwable, CSV] = {
+    val columns = CSVColumnSelector(headerPlaceMapping, headers, rows)
+      .columns(headers.values.map(_.value): _*)
+
+    columns.fold(
+      Left.apply,
+      cols => Columns(cols.values.filter(f)).toCSV
+    )
+  }
+
+  def mapHeaders(f: Header => String): Either[Throwable, CSV] = Try {
+    val transformedHeaders = Headers {
+      headers
+        .values
+        .map(f)
+        .map(Header.apply)
+    }
+
+    new CSV(transformedHeaders, rows)
+  }.toEither
+
+
+
+
+
   def display: Either[Throwable, Unit] = Try(println(this)).toEither
 
   override def withRows(range: Range): Either[Throwable, Rows] =
     CSVRowSelector(rows)
       .withRows(range)
+
+  def filterRows(predicate: Cell => Boolean): Either[Throwable, Rows] =
+    rows.filter(predicate)
 
   def rows(indices: Int*): Either[Throwable, Rows] =
     CSVRowSelector(rows)

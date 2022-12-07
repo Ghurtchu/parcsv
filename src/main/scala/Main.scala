@@ -5,17 +5,14 @@ import csv._
 object Main extends scala.App {
 
   val transformedCSV = for {
-    csv             <- CSV.fromFile("data/programming_languages.csv")
-    headers         <- csv.withHeaders("paradigm", "name", "creator")
-    rows            <- csv.withRows(3 to 7)
-    functionalLangs <- rows.filter(_.value.contains("o"))
-    processedCSV    <- headers <+> functionalLangs // join headers and rows to get new CSV
-    _               <- processedCSV.display
-    _               <- processedCSV.save("data/programming_languages_updated.csv")
+    csv          <- CSV.fromFile("data/programming_languages.csv")
+    headers      <- csv.withHeaders("paradigm", "name", "creator")
+    rows         <- csv.withRows(3 to 7)
+    rowsFiltered <- rows.filter(_.value.contains("functional"))
+    processedCSV <- headers <+> rowsFiltered // join headers and rows to create new CSV
+    _            <- processedCSV.display
+    _            <- processedCSV.save("data/programming_languages_updated.csv")
   } yield processedCSV
-
-  println("--------")
-
 
   val source =
     """food,calories,protein,carbs,isHealthy
@@ -25,14 +22,25 @@ object Main extends scala.App {
       |sugar,387,0,100,false
       |""".stripMargin
 
-  val lowProteinFoodFilter: Cell => Boolean = cell => cell.header.value == "protein" && cell.value.toDouble <= 10
+  val headerFilter: Header => Boolean = _.value.length > 5
+  val rowFilter: Cell => Boolean = cell => cell.header.value == "protein" && cell.value.toDouble <= 10
 
   val transformedCSV2 = for {
-    csv            <- CSV.fromString(source)
-    headers        <- csv.withHeaders("isHealthy", "food", "protein")
-    lowProteinFood <- csv.rows.filter(lowProteinFoodFilter)
-    processedCSV   <- headers <+> lowProteinFood
-    _              <- processedCSV.display
+    csv          <- CSV.fromString(source)
+    headers      <- csv.filterHeaders(headerFilter)
+    rows         <- csv.filterRows(rowFilter)
+    processedCSV <- headers <+> rows // join headers and rows to create new CSV
+    _            <- processedCSV.display
   } yield processedCSV
+
+
+  val numericColumns: Column => Boolean = col => col.cells.forall(_.isNumeric)
+
+  val transformedCSV3 = for {
+    csv         <- CSV.fromString(source)
+    numeric     <- csv.filterColumns(numericColumns) // take only numeric columns
+    capitalized <- numeric.mapHeaders(h => h.value.capitalize) // capitalize each header
+    _           <- capitalized.display
+  } yield numeric
 
 }

@@ -16,7 +16,11 @@ package object csv {
   }
 
   final case class Cell(index: Int, header: Header, value: String) {
+
     override def toString: String = value
+
+    def isNumeric: Boolean = Try(value.toDouble).isSuccess || Try(value.toInt).isSuccess
+
   }
 
   final case class Row(cells: List[Cell]) {
@@ -61,6 +65,13 @@ package object csv {
 
       reprNormalized.split("], ").mkString("]\n")
     }
+
+    def filter(f: Header => Boolean): Either[Throwable, Headers] = Try {
+      Headers {
+        values
+          .filter(f)
+      }
+    }.toEither
   }
 
   final case class Content(data: String) {

@@ -1,5 +1,3 @@
 paradigm,name,creator
 "object-oriented, functional",Scala,Martin Odersky
-object-oriented,C#,Anders Hejlsberg
 functional,Haskell,Simon Peyton Jones
-procedural,C,Dennis Ritchie
