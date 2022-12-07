@@ -1,13 +1,13 @@
-Your favorite functional CSV library: parcsv
+Your favorite CSV library based on functional programming principles: parcsv
 
-parcsv uses `Either[Throwable, CSV]` Monad to enable functional style CSV processing.
+parcsv uses `Either[Throwable, CSV]` Monad to enable you to do functional style CSV processing.
 
 Typical flow:
  - Read CSV from different sources (File, Raw String, Map etc..)
- - Process/Transform it
+ - Process it
  - Save it
 
-Simple example:
+Scala code:
 
 ```scala
 import com.ghurtchu.csv._
@@ -33,10 +33,11 @@ val lowProteinFoodFilter: Row => Boolean = row => {
 
 // csv processing
 val newCSV = for {
-  csv  <- CSV.fromString(source)
-  csv2 <- csv.keepColumns("food", "protein", "isHealthy")
-  csv3 <- csv2.filterRows(lowProteinFoodFilter)
-  _    <- csv3.display
+  csv  <- CSV.fromString(source) // read
+  csv2 <- csv.keepColumns("food", "protein", "isHealthy") // drop "calories" and "carbs"
+  csv3 <- csv2.filterRows(lowProteinFoodFilter) // take rows with "protein" value less than 10
+  _    <- csv3.display // print it
+  _    <- csv3.save("data/processed_food.csv") //save it
 } yield csv3
 ```
 
@@ -44,14 +45,18 @@ Print result:
 
 ![My Image](screenshot_food.png)
 
-Let's see an advanced example using `Pipe`-s
+Let's see an advanced example using `Pipes`.
 
-`Pipe` holds functions which will be applied sequentially to transform CSV files.
-`Pipe` instances may hold filter/map/reduce functions, let's see the usage of:
+`Pipe` is useful when there is a need to apply more than 1 transformation to CSV. 
+They hold filter/map/reduce functions which will be applied sequentially to CSV files.
 
-- `FilterColumnPipe` - filters to columns sequentially
-- `FilterRowPipe` - filters to rows sequentially
+In this example we use:
+
+- `FilterColumnPipe` - filters columns sequentially
+- `FilterRowPipe` - filters rows sequentially
 - `TransformColumnPipe` - transforms rows sequentially
+
+Scala code:
 
 ```scala
 import com.ghurtchu.csv._
@@ -70,14 +75,15 @@ val transformColumnPipe = TransformColumnPipe(
   col => Column(col.header, col.cells.map(cell => cell.copy(value = cell.value.toUpperCase))) // make all values uppercase
 )
 
-// application order will be preserved from left to right
+// create bigger pipe by joining from left to right
 val fullPipe = filterColumnPipe ~> filterRowPipe ~> transformColumnPipe
 
+// processing
 val transformedCSV = for {
-  csv         <- CSV.fromFile("data/programming_languages.csv")
-  transformed <- csv.transformVia(fullPipe)
-  _           <- transformed.display
-  _           <- transformed.save("data/updated.csv")
+  csv         <- CSV.fromFile("data/programming_languages.csv") // read
+  transformed <- csv.transformVia(fullPipe) // apply the whole pipe
+  _           <- transformed.display // print it 
+  _           <- transformed.save("data/updated.csv") // save
 } yield transformed
 
 ```
@@ -85,7 +91,6 @@ val transformedCSV = for {
 Print result:
 
 ![My Image](screenshot_languages.png)
-
 
 
 TODO:
