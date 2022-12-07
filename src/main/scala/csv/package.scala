@@ -31,6 +31,15 @@ package object csv {
 
       s"[$reprNormalized]"
     }
+
+    def index: Int = cells.head.index
+
+    def isFull: Boolean = cells.forall { cell =>
+      val value = cell.value.trim
+
+      value != "" && value != "N/A"
+    }
+
   }
 
   final case class Rows(values: List[Row]) extends Mergeable {
@@ -104,6 +113,22 @@ package object csv {
 
       CSV.apply(Headers(headers), Rows(rows))
     }
+  }
+
+  abstract sealed class FilterPipe[-A](filters: A => Boolean*) {
+    def isEmpty: Boolean = filters.isEmpty
+
+    def head: A => Boolean = filters.head
+
+    def tail: FilterPipe[A]
+  }
+
+  final case class FilterColumnPipe(filters: Column => Boolean*) extends FilterPipe[Column](filters: _*) {
+    override def tail: FilterColumnPipe = new FilterColumnPipe(filters.tail: _*)
+  }
+
+  final case class FilterRowPipe(filters: Row => Boolean*) extends FilterPipe[Row](filters: _*) {
+    override def tail: FilterRowPipe = FilterRowPipe(filters.tail: _*)
   }
 
 }

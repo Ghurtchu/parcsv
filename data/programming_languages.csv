@@ -1,8 +1,8 @@
-name,paradigm,creator,popularity,usage
-Java,object-oriented,James Gosling,High,i
-Python,object-oriented,Guido van Rossum,High,i
-JavaScript,nobody knows :),Brendan Eich,High,i
-Scala,"object-oriented, functional",Martin Odersky,Moderate,i
-C#,object-oriented,Anders Hejlsberg,High,i
-Haskell,functional,Simon Peyton Jones,Low,i
-C,procedural,Dennis Ritchie,Moderate,i
+name,paradigm,creator,popularity,usage,a,b
+Java,object-oriented,James Gosling,High,i,1,2
+Python,object-oriented,Guido van Rossum,High,i,1,2
+JavaScript,nobody knows :),Brendan Eich,High,i,2,3
+Scala,"object-oriented, functional",Martin Odersky,Moderate,i,3,4
+C#,object-oriented,Anders Hejlsberg,High,i,4,4
+Haskell,functional,Simon Peyton Jones,Low,i,5,6
+C,procedural,Dennis Ritchie,Moderate,i,6,1

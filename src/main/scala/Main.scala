@@ -4,23 +4,23 @@ import csv._
 
 object Main extends scala.App {
 
+  val filterColumnPipe = FilterColumnPipe(
+    column => Seq("name", "popularity", "creator").contains(column.header.value), // choose: name, popularity and creator headers
+    _.cells.forall(_.value.length <= 10) // for each cell of a column the value length must be less than 10 chars
+  )
+
+  val filterRowPipe = FilterRowPipe(
+    _.index % 2 == 1, // choose odd-indexed rows only
+    _.isFull // all cells in a row must have a value(no nulls or N/A-s)
+  )
+
   val transformedCSV = for {
     csv  <- CSV.fromFile("data/programming_languages.csv")
-    _    <- csv.display
-    csv3 <- csv.filterColumns(column => column.header.value.contains("o"))
-    csv4 <- csv3.dropRows(0, 6)
-    _ <- csv4.display
-  } yield csv3
+    csv1 <- csv.filterColumns(filterColumnPipe)
+    csv2 <- csv1.filterRows(filterRowPipe)
+    _    <- csv2.display
+    _    <- csv2.save("data/updatec.csv")
+  } yield csv2
 
-
-
-//  val source =
-//    """food,calories,protein,carbs,isHealthy
-//      |apple,52,0.3,14,true
-//      |egg,155,13,26,true
-//      |potato,77,4.3,26,true
-//      |sugar,387,0,100,false
-//      |""".stripMargin
-//
 
 }

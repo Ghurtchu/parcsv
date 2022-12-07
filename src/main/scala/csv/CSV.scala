@@ -4,6 +4,7 @@ package csv
 import api._
 import csv.impl._
 
+import scala.annotation.tailrec
 import scala.util.Try
 
 final class CSV private (private val headers: Headers, private val rows: Rows) {
@@ -116,6 +117,29 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
       .columns(headers.values.map(_.value): _*)
       .fold(Left.apply, columns => Columns(columns.values.filter(f)).toCSV)
 
+  def filterColumns(filterColumnPipe: FilterColumnPipe): Either[Throwable, CSV] = {
+    val columns = CSVColumnSelector(headerPlaceMapping, headers, rows)
+      .columns(headers.values.map(_.value): _*)
+
+    @tailrec
+    def loop(currentCSV: CSV, currentColumns: Columns, pipe: FilterColumnPipe): Either[Throwable, CSV] = {
+      if (pipe.isEmpty) Right(currentCSV)
+      else {
+        val predicate = pipe.head
+        val newColumns = Columns(currentColumns.values.filter(predicate))
+
+        newColumns.toCSV match {
+          case Left(err) => Left(err)
+          case Right(csv) => loop(csv, newColumns, pipe.tail)
+        }
+      }
+    }
+
+    columns match {
+      case Left(err) => Left(err)
+      case Right(cols) => loop(this, cols, filterColumnPipe)
+    }
+  }
 
   def mapHeaders(f: Header => String): Either[Throwable, CSV] = Try {
     val transformedHeaders = Headers {
@@ -164,11 +188,35 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     CSV(headers, newRows)
   }
 
-  def filterRows(predicate: Cell => Boolean): Either[Throwable, CSV] =
-    rows.filter(predicate)
-      .fold(
-        Left.apply,
-        CSV(headers, _))
+  def filterRows(predicate: Row => Boolean): Either[Throwable, CSV] = {
+    val filteredRows = Rows {
+      rows
+        .values
+        .filter(predicate)
+    }
+
+    CSV(headers, filteredRows)
+  }
+
+  def filterRows(filterRowPipe: FilterRowPipe): Either[Throwable, CSV] = {
+
+    @tailrec
+    def loop(currentCSV: CSV, currentRows: Rows, currentFilterRowPipe: FilterRowPipe): Either[Throwable, CSV] = {
+      if (currentFilterRowPipe.isEmpty) Right(currentCSV)
+      else {
+        val predicate = currentFilterRowPipe.head
+        val newRows = Rows(currentRows.values.filter(predicate))
+        val newHeaders = Headers(newRows.values.head.cells.map(_.header))
+
+        CSV(newHeaders, newRows) match {
+          case Right(csv) => loop(csv, newRows, currentFilterRowPipe.tail)
+          case Left(err)  => Left(err)
+        }
+      }
+    }
+
+    loop(this, rows, filterRowPipe)
+  }
 
 }
 
