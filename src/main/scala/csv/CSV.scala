@@ -53,15 +53,11 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     CSVColumnSelector(headerPlaceMapping, headers, rows)
       .columns(names: _*)
 
-  def filterColumns(f: Column => Boolean): Either[Throwable, CSV] = {
-    val columns = CSVColumnSelector(headerPlaceMapping, headers, rows)
+  def filterColumns(f: Column => Boolean): Either[Throwable, CSV] =
+    CSVColumnSelector(headerPlaceMapping, headers, rows)
       .columns(headers.values.map(_.value): _*)
+      .fold(Left.apply, columns => Columns(columns.values.filter(f)).toCSV)
 
-    columns.fold(
-      Left.apply,
-      cols => Columns(cols.values.filter(f)).toCSV
-    )
-  }
 
   def mapHeaders(f: Header => String): Either[Throwable, CSV] = Try {
     val transformedHeaders = Headers {
@@ -73,11 +69,8 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     new CSV(transformedHeaders, rows)
   }.toEither
 
-
-
-
-
-  def display: Either[Throwable, Unit] = Try(println(this)).toEither
+  def display: Either[Throwable, Unit] =
+    Try(println(this)).toEither
 
   override def withRows(range: Range): Either[Throwable, Rows] =
     CSVRowSelector(rows)
@@ -136,7 +129,7 @@ object CSV {
     new CSV(headers, rows)
   }.toEither
 
-  // I know it's mutable, be calm, it's real world baby!
+  // I know it's mutable, be calm purist, it's a local function, it's real world baby!
   def apply(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
     val rowsBuffer = collection.mutable.ArrayBuffer.empty[Row]
 
@@ -160,12 +153,13 @@ object CSV {
       .toEither
   }
 
-  private def extractHeaders(csv: String): Headers = Headers {
-    csv.takeWhile(_ != '\n')
-      .split(",")
-      .map(Header.apply)
-      .toList
-  }
+  private def extractHeaders(csv: String): Headers =
+    Headers {
+      csv.takeWhile(_ != '\n')
+        .split(",")
+        .map(Header.apply)
+        .toList
+    }
 
   private def extractRows(csv: String): Rows = {
 
