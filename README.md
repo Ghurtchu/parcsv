@@ -17,13 +17,13 @@ import com.ghurtchu.csv._
 // Read -> Process -> Save
 
 val newCSV = for {
-  csv             <- CSV.fromFile("data/programming_languages.csv")
-  headers         <- csv.withHeaders("name", "popularity", "paradigm")
-  rows            <- csv.withRows(3 to 7)
+  csv <- CSV.fromFile("data/programming_languages.csv")
+  headers <- csv.keepColumns("name", "popularity", "paradigm")
+  rows <- csv.keepRows(3 to 7)
   functionalLangs <- rows.filter(_.value.contains("functional"))
-  processedCSV    <- headers <+> functionalLangs // join headers and rows to get new CSV
-  _               <- processedCSV.display
-  _               <- processedCSV.save("data/programming_languages_updated.csv")
+  processedCSV <- headers <+> functionalLangs // join headers and rows to get new CSV
+  _ <- processedCSV.display
+  _ <- processedCSV.save("data/programming_languages_updated.csv")
 } yield processedCSV
 ```
 
@@ -51,11 +51,11 @@ val lowProteinFoodFilter: Cell => Boolean = cell => cell.header.value == "protei
 
 // csv processing
 val newCSV = for {
-  csv            <- CSV.fromString(source)
-  headers        <- csv.withHeaders("food", "protein", "isHealthy")
+  csv <- CSV.fromString(source)
+  headers <- csv.keepColumns("food", "protein", "isHealthy")
   lowProteinFood <- csv.rows.filter(lowProteinFoodFilter)
-  processedCSV   <- headers <+> lowProteinFood
-  _              <- processedCSV.display
+  processedCSV <- headers <+> lowProteinFood
+  _ <- processedCSV.display
 } yield processedCSV
 ```
 

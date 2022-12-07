@@ -6,7 +6,7 @@ import csv.impl._
 
 import scala.util.Try
 
-final class CSV private (override val headers: Headers, override val rows: Rows) extends CSVStructure with CSVOperations {
+final class CSV private (private val headers: Headers, private val rows: Rows) {
 
   private lazy val headerPlaceMapping: Map[Header, Int] =
     headers
@@ -14,44 +14,102 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
       .zipWithIndex
       .toMap
 
-  override val content: Content =
+  val raw: Content =
     CSVContentBuilder(headers, rows)
       .content
 
-  def withHeaders(names: String*): Either[Throwable, Headers] = Try {
-    Headers {
+  def keepColumns(names: String*): Either[Throwable, CSV] = {
+    val newHeaders = Headers {
       names
         .map(Header.apply)
         .toList
     }
-  }.toEither
+
+    CSV(newHeaders, rows)
+  }
+
+  def keepColumns(range: Range): Either[Throwable, CSV] = {
+    val start = range.start
+    val end = range.end
+
+    val newHeaders = Headers {
+      headers
+        .values
+        .slice(start, end + 1) // end + 1 because it uses "until" instead of "to"
+    }
+
+    val newRows = Rows {
+      rows.values.map { row =>
+        Row {
+          row.cells.filter { cell =>
+            newHeaders
+              .values
+              .contains(cell.header)
+          }
+        }
+      }
+    }
+
+    CSV(newHeaders, newRows)
+  }
+
+  def dropColumns(names: String*): Either[Throwable, CSV] = {
+    val newHeaders = Headers {
+      headers
+        .values
+        .filterNot(h => names.contains(h.value))
+    }
+
+    val newRows = Rows {
+      rows.values.map { row =>
+        Row {
+          row.cells.filter { cell =>
+            newHeaders.values.contains(cell.header)
+          }
+        }
+      }
+    }
+
+    CSV(newHeaders, newRows)
+  }
+
+  def dropColumns(range: Range): Either[Throwable, CSV] = {
+    val start = range.start
+    val end = range.end
+
+    val newHeaders = Headers {
+      headers
+        .values
+        .slice(0, start) :::
+        headers
+          .values
+          .slice(end + 1, headers.values.size) // end + 1 because it is using "until"
+    }
+
+    val newRows = Rows {
+      rows.values.map { row =>
+        Row {
+          row.cells.filter { cell =>
+            newHeaders.values.contains(cell.header)
+          }
+        }
+      }
+    }
+
+    CSV(newHeaders, newRows)
+  }
 
   def filterHeaders(predicate: Header => Boolean): Either[Throwable, Headers] =
     headers.filter(predicate)
-
-  override def column(name: String): Option[Column] =
-    CSVColumnSelector(headerPlaceMapping, headers, rows)
-      .column(name)
-
-  override def cell(rowIndex: Int, colIndex: Int): Option[Cell] = ???
-
-  override def slice(rowRange: Range, colRange: Range): List[List[String]] = ???
 
   override lazy val toString: String =
     CSVPrettifier(CSVColumnSelector.apply(headerPlaceMapping, headers, rows))
       .prettify
 
-  override def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] =
-    CSVWriter(content)
+  def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] =
+    CSVWriter(raw)
       .save(filePath)
 
-  override def row(index: Int): Option[Row] =
-    CSVRowSelector(rows)
-      .row(index)
-
-  override def columns(names: String*): Either[Throwable, Columns] =
-    CSVColumnSelector(headerPlaceMapping, headers, rows)
-      .columns(names: _*)
 
   def filterColumns(f: Column => Boolean): Either[Throwable, CSV] =
     CSVColumnSelector(headerPlaceMapping, headers, rows)
@@ -63,7 +121,7 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
     val transformedHeaders = Headers {
       headers
         .values
-        .map(Header.apply compose f)
+        .map(f andThen Header.apply)
     }
 
     new CSV(transformedHeaders, rows)
@@ -72,16 +130,45 @@ final class CSV private (override val headers: Headers, override val rows: Rows)
   def display: Either[Throwable, Unit] =
     Try(println(this)).toEither
 
-  override def withRows(range: Range): Either[Throwable, Rows] =
+  def keepRows(range: Range): Either[Throwable, CSV] =
     CSVRowSelector(rows)
       .withRows(range)
+      .fold(Left.apply, CSV(headers, _))
 
-  def filterRows(predicate: Cell => Boolean): Either[Throwable, Rows] =
-    rows.filter(predicate)
-
-  def rows(indices: Int*): Either[Throwable, Rows] =
+  def keepRows(indices: Int*): Either[Throwable, CSV] =
     CSVRowSelector(rows)
       .rows(indices: _*)
+      .fold(Left.apply, CSV(headers, _))
+
+  def dropRows(range: Range): Either[Throwable, CSV] = {
+    val newRows = Rows {
+      rows.values.filter { row =>
+        val index = row.cells.head.index
+
+        index < range.start || index > range.end
+      }
+    }
+
+    CSV(headers, newRows)
+  }
+
+  def dropRows(indices: Int*): Either[Throwable, CSV] = {
+    val newRows = Rows {
+      rows.values
+        .zipWithIndex.filter { case (_, ind) =>
+
+        !(indices contains ind)
+      }.map(_._1)
+    }
+
+    CSV(headers, newRows)
+  }
+
+  def filterRows(predicate: Cell => Boolean): Either[Throwable, CSV] =
+    rows.filter(predicate)
+      .fold(
+        Left.apply,
+        CSV(headers, _))
 
 }
 
