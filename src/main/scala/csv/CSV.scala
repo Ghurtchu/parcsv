@@ -130,7 +130,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
 
         newColumns.toCSV match {
           case Left(err) => Left(err)
-          case Right(csv) => loop(csv, newColumns, FilterColumnPipe(pipe.tail: _*))
+          case Right(csv) => loop(csv, newColumns, FilterColumnPipe(pipe.functions.tail: _*))
         }
       }
     }
@@ -169,7 +169,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
 
         newCols.toCSV match {
           case Left(err) => Left(err)
-          case Right(csv) => loop(csv, newCols, TransformColumnPipe(pipe.tail: _*))
+          case Right(csv) => loop(csv, newCols, TransformColumnPipe(pipe.functions.tail: _*))
         }
       }
     }
@@ -238,7 +238,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
         val newHeaders = Headers(newRows.values.head.cells.map(_.header))
 
         CSV(newHeaders, newRows) match {
-          case Right(csv) => loop(csv, newRows, FilterRowPipe(currentFilterRowPipe.tail: _*))
+          case Right(csv) => loop(csv, newRows, FilterRowPipe(currentFilterRowPipe.functions.tail: _*))
           case Left(err)  => Left(err)
         }
       }

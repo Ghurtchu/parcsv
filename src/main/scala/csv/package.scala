@@ -134,19 +134,10 @@ package object csv {
 
   sealed trait Pipe[-A, +B] {
     def functions: Seq[A => B]
-    def tail: Seq[A => B]
   }
 
-  final case class TransformColumnPipe(override val functions: Column => Column*) extends Pipe[Column, Column] {
-    override def tail: Seq[Column => Column] = functions.tail
-  }
-
-  final case class FilterColumnPipe(override val functions: Column => Boolean*) extends   Pipe[Column, Boolean] {
-    override def tail: Seq[Column => Boolean] = functions.tail
-  }
-
-  final case class FilterRowPipe(override val functions: Row => Boolean*) extends         Pipe[Row, Boolean] {
-    override def tail: Seq[Row => Boolean] = functions.tail
-  }
+  final case class TransformColumnPipe(override val functions: Column => Column*) extends Pipe[Column, Column]
+  final case class FilterColumnPipe(override val functions: Column => Boolean*) extends   Pipe[Column, Boolean]
+  final case class FilterRowPipe(override val functions: Row => Boolean*) extends         Pipe[Row, Boolean]
 
 }
