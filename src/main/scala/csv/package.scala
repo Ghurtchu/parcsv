@@ -130,9 +130,6 @@ package object csv {
   implicit class PipelineOps(self: Pipe) {
     def ~>(that: Pipe): Seq[Pipe] = self :: that :: Nil
     def ++(them: Seq[Pipe]): Seq[Pipe] = self +: them
-
-    implicit def pipelineToList(pipeline: Pipe): List[Pipe] =
-      List(pipeline)
   }
 
 //  abstract sealed class TransformPipe[A, B] extends Pipeline[A, B] {
@@ -144,7 +141,9 @@ package object csv {
 //  }
 
   final case class TransformColumnPipe(functions: Column => Column*) extends Pipe {
-    def tail: Pipe = TransformColumnPipe(functions.tail: _*)
+    def head: Column => Column = functions.head
+    def tail: TransformColumnPipe = TransformColumnPipe(functions.tail: _*)
+    def isEmpty: Boolean = functions.isEmpty
   }
 
 //  abstract sealed class FilterPipe[A] extends Pipeline[A, Boolean] {
