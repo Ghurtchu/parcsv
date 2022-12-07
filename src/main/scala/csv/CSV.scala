@@ -141,15 +141,20 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     }
   }
 
-  def mapHeaders(f: Header => String): Either[Throwable, CSV] = Try {
+  def mapHeaders(f: Header => String): Either[Throwable, CSV] = {
     val transformedHeaders = Headers {
       headers
         .values
         .map(f andThen Header.apply)
     }
 
-    new CSV(transformedHeaders, rows)
-  }.toEither
+    CSV(transformedHeaders, rows)
+  }
+
+  def transformColumns(f: Column => Column): Either[Throwable, CSV] =
+    CSVColumnSelector(headerPlaceMapping, headers, rows)
+      .columns(headers.values.map(_.value): _*)
+      .fold(Left.apply, col => Columns(col.values.map(f)).toCSV)
 
   def display: Either[Throwable, Unit] =
     Try(println(this)).toEither
@@ -216,6 +221,39 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     }
 
     loop(this, rows, filterRowPipe)
+  }
+
+  def transformVia(pipeline: Seq[Pipeline]): Either[Throwable, CSV] = {
+
+    @tailrec
+    def loop(csv: CSV, currPipeline: Seq[Pipeline]): Either[Throwable, CSV] = {
+      if (currPipeline.isEmpty) Right(csv)
+      else {
+        currPipeline.head match {
+          case TransformColumnPipe(functions@_*) => Left(new Exception(""))
+          case FilterColumnPipe(functions@_*) => {
+            val newCSV = filterColumns(FilterColumnPipe(functions: _*))
+
+            newCSV match {
+              case Left(value) => Left(value)
+              case Right(csv) => loop(csv, currPipeline.tail)
+            }
+
+          }
+
+          case FilterRowPipe(functions@_*) => {
+            val newCSV = filterRows(FilterRowPipe(functions: _*))
+
+            newCSV match {
+              case Left(value) => Left(value)
+              case Right(csv) => loop(csv, currPipeline.tail)
+            }
+          }
+        }
+      }
+    }
+
+    loop(this, pipeline)
   }
 
 }

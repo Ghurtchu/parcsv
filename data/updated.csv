@@ -1,0 +1,4 @@
+name,paradigm,creator,popularity,usage,a,b
+Python,object-oriented,Guido van Rossum,High,i,1,2
+Scala,"object-oriented, functional",Martin Odersky,Moderate,i,3,4
+Haskell,functional,Simon Peyton Jones,Low,i,5,6

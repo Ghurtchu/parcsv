@@ -1,5 +1,6 @@
 package com.ghurtchu
 
+import java.nio.MappedByteBuffer
 import scala.util.Try
 
 package object csv {
@@ -115,20 +116,38 @@ package object csv {
     }
   }
 
-  abstract sealed class FilterPipe[-A](filters: A => Boolean*) {
-    def isEmpty: Boolean = filters.isEmpty
+  sealed trait Pipeline
 
-    def head: A => Boolean = filters.head
+//  abstract sealed class TransformPipe[A, B] extends Pipeline[A, B] {
+//    def isEmpty: Boolean = functions.isEmpty
+//
+//    def head: A => B = functions.head
+//
+//    def tail: TransformPipe[A, B]
+//  }
 
-    def tail: FilterPipe[A]
+  final case class TransformColumnPipe(functions: Column => Column*) extends Pipeline {
+    def tail: Pipeline = TransformColumnPipe(functions.tail: _*)
   }
 
-  final case class FilterColumnPipe(filters: Column => Boolean*) extends FilterPipe[Column](filters: _*) {
-    override def tail: FilterColumnPipe = new FilterColumnPipe(filters.tail: _*)
+//  abstract sealed class FilterPipe[A] extends Pipeline[A, Boolean] {
+//    def isEmpty: Boolean = functions.isEmpty
+//
+//    def head: A => Boolean = functions.head
+//
+//    def tail: FilterPipe[A]
+//  }
+
+  final case class FilterColumnPipe(functions: Column => Boolean*) extends Pipeline {
+    def tail: FilterColumnPipe = FilterColumnPipe(functions.tail: _*)
+    def isEmpty: Boolean = functions.isEmpty
+    def head: Column => Boolean = functions.head
   }
 
-  final case class FilterRowPipe(filters: Row => Boolean*) extends FilterPipe[Row](filters: _*) {
-    override def tail: FilterRowPipe = FilterRowPipe(filters.tail: _*)
+  final case class FilterRowPipe(functions: Row => Boolean*) extends Pipeline {
+    def tail: FilterRowPipe = FilterRowPipe(functions.tail: _*)
+    def isEmpty: Boolean = functions.isEmpty
+    def head: Row => Boolean = functions.head
   }
 
 }

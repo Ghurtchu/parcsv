@@ -4,23 +4,30 @@ import csv._
 
 object Main extends scala.App {
 
+  // sequential column filter
   val filterColumnPipe = FilterColumnPipe(
-    column => Seq("name", "popularity", "creator").contains(column.header.value), // choose: name, popularity and creator headers
-    _.cells.forall(_.value.length <= 10) // for each cell of a column the value length must be less than 10 chars
+    col => Seq("name", "popularity", "creator").contains(col.header.value),
+    col => col.cells.forall(_.value.length <= 10)
   )
 
+  // sequential row filter
   val filterRowPipe = FilterRowPipe(
-    _.index % 2 == 1, // choose odd-indexed rows only
-    _.isFull // all cells in a row must have a value(no nulls or N/A-s)
+    row => row.index % 2 == 1,
+    row => row.isFull
   )
+
+  val transformColumnPipe = TransformColumnPipe(
+    col => Column(col.header, col.cells.map(cell => Cell(cell.index, cell.header, cell.value.toUpperCase)))
+  )
+
+  val pipe = Seq(filterColumnPipe, filterRowPipe)
 
   val transformedCSV = for {
-    csv  <- CSV.fromFile("data/programming_languages.csv")
-    csv1 <- csv.filterColumns(filterColumnPipe)
-    csv2 <- csv1.filterRows(filterRowPipe)
-    _    <- csv2.display
-    _    <- csv2.save("data/updatec.csv")
-  } yield csv2
+    csv         <- CSV.fromFile("data/programming_languages.csv")
+    transformed <- csv.transformVia(pipe)
+    _           <- transformed.display
+    _           <- transformed.save("data/updated.csv")
+  } yield transformed
 
 
 }
