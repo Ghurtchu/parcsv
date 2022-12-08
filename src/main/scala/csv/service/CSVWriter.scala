@@ -1,5 +1,5 @@
 package com.ghurtchu
-package csv.impl
+package csv.service
 
 import csv.api.CanWrite
 import csv._

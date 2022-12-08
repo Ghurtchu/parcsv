@@ -1,8 +1,7 @@
 package com.ghurtchu
 package csv
 
-import api._
-import csv.impl._
+import csv.service._
 
 import scala.annotation.tailrec
 import scala.util.Try
