@@ -102,6 +102,16 @@ package object csv {
 
       s"$header: [$reprNormalized]"
     }
+
+    def mapHeader(f: Header => Header): Column = Column(f(header), cells.map(_.copy(header = f(header))))
+
+    def mapCells(f: List[Cell] => List[Cell]): Column = {
+      val newCells = f(cells)
+      val newHeader = header.copy(newCells.head.value)
+
+      Column(newHeader, newCells)
+    }
+
   }
 
   final case class Columns(values: List[Column]) {
@@ -120,6 +130,7 @@ package object csv {
 
       CSV.apply(Headers(headers), Rows(rows))
     }
+
   }
 
 //  implicit class ListPipelineOps(self: List[Pipeline]) {

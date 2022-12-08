@@ -8,13 +8,13 @@ import scala.util.Try
 
 final class CSV private (private val headers: Headers, private val rows: Rows) {
 
-  private lazy val headerPlaceMapping: Map[Header, Int] =
+  private val headerPlaceMapping: Map[Header, Int] =
     headers
       .values
       .zipWithIndex
       .toMap
 
-  val raw: Content =
+  def raw: Content =
     CSVContentBuilder(headers, rows)
       .content
 
@@ -97,7 +97,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
   def filterHeaders(predicate: Header => Boolean): Either[Throwable, Headers] =
     headers.filter(predicate)
 
-  override lazy val toString: String =
+  override val toString: String =
     CSVPrettifier(CSVColumnSelector.apply(headerPlaceMapping, headers, rows))
       .prettify
 
@@ -142,7 +142,18 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
         .map(f andThen Header.apply)
     }
 
-    CSV(transformedHeaders, rows)
+    val newRows = Rows {
+      rows.values.map { row =>
+        Row {
+          row.cells.zip(transformedHeaders.values).map { case (cell, header) =>
+            cell.copy(header = header)
+          }
+        }
+      }
+    }
+
+
+    CSV(transformedHeaders, newRows)
   }
 
   def transformColumns(f: Column => Column): Either[Throwable, CSV] =
@@ -150,7 +161,26 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
       .columns(headers.values.map(_.value): _*)
       .fold(Left.apply, col => Columns(col.values.map(f)).toCSV)
 
-  def transformColumns(csv: CSV, transformColumnPipe: TransformColumnPipe): Either[Throwable, CSV] = {
+  def transformColumn(name: String)(f: Column => Column): Either[Throwable, CSV] =
+    CSVColumnSelector(headerPlaceMapping, headers, rows)
+      .columns(headers.values.map(_.value): _*)
+      .fold(Left.apply, cols => {
+        Columns {
+          cols
+            .values
+            .map { col =>
+              if (col.header.value == name) {
+                val newCol = f(col)
+
+                newCol.copy(cells = newCol.cells.map(_.copy(header = newCol.header)))
+              }
+              else col
+            }
+        }.toCSV
+      })
+
+
+  private def transformColumns(csv: CSV, transformColumnPipe: TransformColumnPipe): Either[Throwable, CSV] = {
     val columns = CSVColumnSelector(csv.headerPlaceMapping, csv.headers, csv.rows)
       .columns(headers.values.map(_.value): _*)
 
@@ -295,7 +325,7 @@ object CSV {
 
   def fromFile(path: String): Either[Throwable, CSV] = Try {
     val file = read(path)
-    val csvContent = file.mkString
+    val csvContent = file.mkString.replace("\r", "")
 
     file.close()
 
@@ -367,23 +397,19 @@ object CSV {
         .split("\n")
         .toList
         .map { rawLine =>
-          val splitted: Array[String] = rawLine.split("\"").filter(_ != ",")
+          val splitted: Array[String] = rawLine.split("\"").filter(_.trim != "")
+          // if contains complex strings
           if (splitted.length > 1) {
-            val processed = splitted.flatMap { each =>
-              if (each.endsWith(",")) {
-                val normalFirstCase = each.substring(0, each.length - 1)
-
-                Array(normalFirstCase)
-              } else if (each.startsWith(",")) {
-                val normalSecondCase = each.drop(1)
-
-                normalSecondCase.split(",")
+            val processed = splitted.flatMap { line =>
+              if (!line.startsWith(",") && !line.endsWith(",")) {
+                Array(line)
+              } else {
+                line.split(",").filter(s => s.trim != "," && s.trim != "")
               }
-              else Array(each)
             }
 
             processed
-          } else rawLine.split(",")
+          } else rawLine.split(",").filter(_.trim != "")
         }.zipWithIndex.map { case (line, index) =>
         line.zip(headers).map { case (word, header) =>
           // put string in "quotes" if it contains comma
