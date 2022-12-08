@@ -211,11 +211,11 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     CSV(headers, newRows)
   }
 
-  def filterRows(predicate: Row => Boolean): Either[Throwable, CSV] = {
+  def filterRows(predicate: Cell => Boolean): Either[Throwable, CSV] = {
     val filteredRows = Rows {
       rows
         .values
-        .filter(predicate)
+        .filter(_.cells.exists(predicate))
     }
 
     CSV(headers, filteredRows)

@@ -22,6 +22,8 @@ package object csv {
 
     def isNumeric: Boolean = Try(value.toDouble).isSuccess || Try(value.toInt).isSuccess
 
+    def headerValue: String = header.value
+
   }
 
   final case class Row(cells: List[Cell]) {

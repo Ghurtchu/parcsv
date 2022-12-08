@@ -2,34 +2,39 @@ package com.ghurtchu
 
 import csv._
 
+import scala.collection.mutable
+
 object Main extends scala.App {
 
-  // csv as a raw string
-
-  import com.ghurtchu.csv._
+  val rawCsv =
+    """name,age,salary,position
+      |nika,23,11000,senior scala developer
+      |toko,20,150,junior social media engineer
+      |gio,18,0,pupil
+      |laliko,20,0,student
+      |""".stripMargin
 
   val filterColumnPipe = FilterColumnPipe(
-    col => Seq("name", "popularity", "creator").contains(col.header.value), // choose columns by names
-    col => col.cells.forall(_.value.length <= 20) // keep columns with all values shorter than 20 characters
+    col => Seq("salary", "position").contains(col.header.value),
+    col => col.cells.forall(_.value != "N/A")
   )
 
   val filterRowPipe = FilterRowPipe(
-    row => row.index % 2 == 1, // then take only odd-indexed rows
-    row => row.isFull // then keep those which have no N/A-s
+    row => row.cells.exists(cell => cell.headerValue == "salary" && cell.value.toDouble >= 10),
+    row => row.isFull
   )
 
   val transformColumnPipe = TransformColumnPipe(
-    col => Column(col.header, col.cells.map(cell => cell.copy(value = cell.value.toUpperCase))) // make all values uppercase
+    col => Column(col.header, col.cells.map(cell => cell.copy(value = cell.value.toUpperCase)))
   )
 
-  // application order will be preserved from left to right
-  val fullPipe = filterColumnPipe ~> filterRowPipe ~> transformColumnPipe
+  val pipe = filterColumnPipe ~> filterRowPipe ~> transformColumnPipe
 
-  val transformedCSV = for {
-    csv <- CSV.fromFile("data/programming_languages.csv")
-    transformed <- csv.transformVia(fullPipe)
-    _ <- transformed.display
-    _ <- transformed.save("data/updated.csv")
-  } yield transformed
+  val program = for {
+    csv  <- CSV.fromString(rawCsv)
+    processed <- csv.transformVia(pipe)
+    _ <- processed.display
+  } yield processed
+
 
 }
