@@ -32,13 +32,11 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
   def keepColumns(range: Range): Either[Throwable, CSV] = {
     val start = range.start
     val end = range.end
-
     val newHeaders = Headers {
       headers
         .values
         .slice(start, end + 1) // end + 1 because it uses "until" instead of "to"
     }
-
     val newRows = Rows {
       rows.values.map { row =>
         Row {
@@ -60,7 +58,6 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
         .values
         .filterNot(h => names.contains(h.value))
     }
-
     val newRows = Rows {
       rows.values.map { row =>
         Row {
@@ -77,7 +74,6 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
   def dropColumns(range: Range): Either[Throwable, CSV] = {
     val start = range.start
     val end = range.end
-
     val newHeaders = Headers {
       headers
         .values
@@ -86,7 +82,6 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
           .values
           .slice(end + 1, headers.values.size) // end + 1 because it is using "until"
     }
-
     val newRows = Rows {
       rows.values.map { row =>
         Row {
@@ -336,13 +331,10 @@ object CSV {
 
   // I know it's mutable, be calm purist, it's a local function, it's real world baby!
   def apply(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
-    val rowsBuffer = collection.mutable.ArrayBuffer.empty[Row]
-
+    val rowsBuffer = collection.mutable.Stack.empty[Row]
     rows.values.foreach { row =>
       val sortedCells = collection.mutable.Stack.empty[Cell]
-
       val copiedCells = collection.mutable.Stack(row.cells: _*)
-
       headers.values.foreach { header =>
         copiedCells.foreach { cell =>
           if (cell.header == header && !sortedCells.contains(cell)) {
@@ -367,11 +359,9 @@ object CSV {
     }
 
   private def extractRows(csv: String): Rows = {
-
     val headers: Array[Header] = csv.takeWhile(_ != '\n')
       .split(",")
       .map(Header.apply)
-
     val rows = Rows {
       csv.dropWhile(_ != '\n')
         .tail
