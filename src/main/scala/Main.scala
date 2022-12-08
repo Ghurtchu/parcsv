@@ -20,7 +20,7 @@ object Main extends scala.App {
   )
 
   val filterRowPipe = FilterRowPipe(
-    row => row.cells.exists(cell => cell.headerValue == "salary" && cell.value.toDouble >= 10),
+    row => row.cells.exists(cell => cell.belongsTo("salary") && cell.numericValue >= 10),
     row => row.isFull
   )
 

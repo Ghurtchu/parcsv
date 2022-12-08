@@ -24,6 +24,10 @@ package object csv {
 
     def headerValue: String = header.value
 
+    def belongsTo(columnName: String): Boolean = header.value == columnName
+
+    def numericValue: Double = value.toDouble
+
   }
 
   final case class Row(cells: List[Cell]) {
