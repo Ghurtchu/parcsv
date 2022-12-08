@@ -22,7 +22,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     val newHeaders = Headers {
       names
         .map(Header.apply)
-        .toList
+        .toVector
     }
 
     CSV(newHeaders, rows)
@@ -76,7 +76,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     val newHeaders = Headers {
       headers
         .values
-        .slice(0, start) :::
+        .slice(0, start) ++
         headers
           .values
           .slice(end + 1, headers.values.size) // end + 1 because it is using "until"
@@ -335,8 +335,8 @@ object CSV {
     new CSV(headers, rows)
   }.toEither
 
-  def fromMap(map: Map[String, List[String]]): Either[Throwable, CSV] = Try {
-    val headers = Headers(map.keys.map(Header.apply).toList)
+  def fromMap(map: Map[String, Vector[String]]): Either[Throwable, CSV] = Try {
+    val headers = Headers(map.keys.map(Header.apply).toVector)
 
     val stringRows = (map.head._2.indices by 1).map { i =>
       map
@@ -351,8 +351,8 @@ object CSV {
         stringCells.zip(headers.values).map { case (strCell, header) =>
 
           Cell(i, header, strCell)
-        }.toList
-      }).map(Row.apply).toList
+        }.toVector
+      }).map(Row.apply).toVector
     }
 
     new CSV(headers, rows)
@@ -371,11 +371,10 @@ object CSV {
           }
         }
       }
-
-      rowsBuffer.append(Row(sortedCells.toList))
+      rowsBuffer.append(Row(sortedCells.toVector))
     }
 
-    Try(new CSV(headers, Rows(rowsBuffer.toList)))
+    Try(new CSV(headers, Rows(rowsBuffer.toVector)))
       .toEither
   }
 
@@ -384,7 +383,7 @@ object CSV {
       csv.takeWhile(_ != '\n')
         .split(",")
         .map(Header.apply)
-        .toList
+        .toVector
     }
 
   private def extractRows(csv: String): Rows = {
@@ -395,20 +394,14 @@ object CSV {
       csv.dropWhile(_ != '\n')
         .tail
         .split("\n")
-        .toList
+        .toVector
         .map { rawLine =>
           val splitted: Array[String] = rawLine.split("\"").filter(_.trim != "")
-          // if contains complex strings
           if (splitted.length > 1) {
-            val processed = splitted.flatMap { line =>
-              if (!line.startsWith(",") && !line.endsWith(",")) {
-                Array(line)
-              } else {
-                line.split(",").filter(s => s.trim != "," && s.trim != "")
-              }
+            splitted.flatMap { line =>
+              if (!line.startsWith(",") && !line.endsWith(",")) Array(line)
+              else line.split(",").filter(s => s.trim != "," && s.trim != "")
             }
-
-            processed
           } else rawLine.split(",").filter(_.trim != "")
         }.zipWithIndex.map { case (line, index) =>
         line.zip(headers).map { case (word, header) =>
@@ -416,7 +409,7 @@ object CSV {
           val wordUpdated = if (word contains ",") s""""$word"""" else word
 
           Cell(index, header, wordUpdated)
-        }.toList
+        }.toVector
       }.map(Row.apply)
     }
 

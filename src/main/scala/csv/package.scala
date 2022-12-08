@@ -30,7 +30,7 @@ package object csv {
 
   }
 
-  final case class Row(cells: List[Cell]) {
+  final case class Row(cells: Vector[Cell]) {
 
     override def toString: String = {
       val repr = cells.map(_.toString).toString
@@ -49,7 +49,7 @@ package object csv {
 
   }
 
-  final case class Rows(values: List[Row]) extends Mergeable {
+  final case class Rows(values: Vector[Row]) extends Mergeable {
 
     override def toString: String = {
       val repr = values.map(_.toString).toString
@@ -73,7 +73,7 @@ package object csv {
     override def toString: String = value
   }
 
-  final case class Headers(values: List[Header]) extends Mergeable {
+  final case class Headers(values: Vector[Header]) extends Mergeable {
 
     override def toString: String = {
       val repr = values.map(_.toString).toString
@@ -94,7 +94,7 @@ package object csv {
     override def toString: String = data
   }
 
-  final case class Column(header: Header, cells: List[Cell]) {
+  final case class Column(header: Header, cells: Vector[Cell]) {
 
     override def toString: String = {
       val repr = cells.map(_.toString).toString
@@ -105,7 +105,7 @@ package object csv {
 
     def mapHeader(f: Header => Header): Column = Column(f(header), cells.map(_.copy(header = f(header))))
 
-    def mapCells(f: List[Cell] => List[Cell]): Column = {
+    def mapCells(f: Vector[Cell] => Vector[Cell]): Column = {
       val newCells = f(cells)
       val newHeader = header.copy(newCells.head.value)
 
@@ -114,7 +114,7 @@ package object csv {
 
   }
 
-  final case class Columns(values: List[Column]) {
+  final case class Columns(values: Vector[Column]) {
 
     def toCSV: Either[Throwable, CSV] = {
       val rowLength = values.head.cells.length
@@ -126,15 +126,15 @@ package object csv {
 
           cell
         }
-      }.map(Row.apply).toList
+      }.map(Row.apply).toVector
 
       CSV.apply(Headers(headers), Rows(rows))
     }
 
   }
 
-//  implicit class ListPipelineOps(self: List[Pipeline]) {
-//    def ~>(that: Pipeline): List[Pipeline] = self :+ that
+//  implicit class VectorPipelineOps(self: Vector[Pipeline]) {
+//    def ~>(that: Pipeline): Vector[Pipeline] = self :+ that
 //  }
 
   implicit class SeqPipelineOps(selves: Seq[UntypedPipe]) {
