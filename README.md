@@ -1,4 +1,4 @@
-Your favorite CSV library based on functional programming principles: parcsv
+`parcsv` is a parser which treats CSV files as tabular dataframes enabling you to manipulate them fairly easily.
 
 parcsv uses `Either[Throwable, CSV]` Monad to enable you to do functional style CSV processing.
 
