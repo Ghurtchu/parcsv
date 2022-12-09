@@ -58,6 +58,8 @@ package object csv {
       reprNormalized.split("], ").mkString("]\n")
     }
 
+    def size: Int = values.size
+
     def filter(f: Cell => Boolean): Either[Throwable, Rows] = Try {
       Rows {
         values.filter { row =>
@@ -67,6 +69,9 @@ package object csv {
         }
       }
     }.toEither
+
+    def :+(row: Row): Rows = Rows(values :+ row)
+
   }
 
   final case class Header(value: String) {

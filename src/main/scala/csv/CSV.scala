@@ -312,6 +312,17 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     loop(this, pipeline)
   }
 
+  def addRow(values: Seq[String]): Either[Throwable, CSV] = {
+    val newIndex = rows.size
+    val newRow = Row {
+      values.toVector.zip(headers.values).map { case (value, header) =>
+        Cell(newIndex, header, value)
+      }
+    }
+
+    CSV(headers, rows :+ newRow)
+  }
+
 }
 
 object CSV {
