@@ -231,6 +231,15 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     CSV(headers, newRows)
   }
 
+  def sortHeaders(sortOrder: CSVSortOrder): Either[Throwable, CSV] = {
+    implicit val headerOrdering: Ordering[Header] = (a , b) => a.value.compareTo(b.value)
+    implicit val cellOrdering: Ordering[Cell]     = (a, b)  => a.header.value.compareTo(b.value)
+    val sortedHeaders = Headers(headers.values.sorted)
+    val sortedRows = Rows(rows.values.map(_.cells.sorted).map(Row.apply))
+
+    CSV(sortedHeaders, sortedRows)
+  }
+
   def dropRows(indices: Int*): Either[Throwable, CSV] = {
     val newRows = Rows {
       rows.values
@@ -330,9 +339,9 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     val newHeaders = headers :+ newHeader
     val newRows = cells.length match {
       case 0 => {
-        val notAvailables = Vector.fill(rows.size + 1)("N/A")
+        lazy val NAs = Vector.fill(rows.size + 1)("N/A")
         Rows {
-          rows.values.zip(notAvailables).map { case (row, cellString) =>
+          rows.values.zip(NAs).map { case (row, cellString) =>
             Row(row.cells :+ Cell(row.index, newHeader, cellString))
           }
         }
@@ -375,6 +384,7 @@ object CSV {
   def fromMap(map: Map[String, Seq[String]]): Either[Throwable, CSV] = Try {
     val listMap = ListMap.from(map)
     val headers = Headers(listMap.keys.map(Header.apply).toVector)
+
 
     val stringRows = (listMap.head._2.indices by 1).map { i =>
       listMap

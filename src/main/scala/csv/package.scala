@@ -165,4 +165,9 @@ package object csv {
   final case class FilterColumnPipe(override val functions: Column => Boolean*) extends   Pipe[Column, Boolean]
   final case class FilterRowPipe(override val functions: Row => Boolean*) extends         Pipe[Row, Boolean]
 
+  sealed trait CSVSortOrder
+
+  final case object Ascending  extends CSVSortOrder
+  final case object Descending extends CSVSortOrder
+
 }

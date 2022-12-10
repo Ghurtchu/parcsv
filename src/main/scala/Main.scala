@@ -2,6 +2,7 @@ package com.ghurtchu
 
 import csv._
 
+import javax.swing.SortOrder
 import scala.collection.immutable.ListMap
 
 object Main extends scala.App {
@@ -15,8 +16,9 @@ object Main extends scala.App {
   )
 
   val processed = for {
-    csv <- CSV.fromMap(map)
-    _   <- csv.display
+    csv  <- CSV.fromMap(map)
+    csv2 <- csv.sortHeaders(Ascending)
+    _    <- csv2.display
   } yield csv
 
 }
