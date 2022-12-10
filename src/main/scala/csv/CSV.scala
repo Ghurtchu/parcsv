@@ -4,6 +4,8 @@ package csv
 import csv.service._
 
 import scala.annotation.tailrec
+import scala.collection.immutable.ListMap
+import scala.collection.mutable
 import scala.util.Try
 
 final class CSV private (private val headers: Headers, private val rows: Rows) {
@@ -370,11 +372,12 @@ object CSV {
     new CSV(headers, rows)
   }.toEither
 
-  def fromMap(map: Map[String, Vector[String]]): Either[Throwable, CSV] = Try {
-    val headers = Headers(map.keys.map(Header.apply).toVector)
+  def fromMap(map: Map[String, Seq[String]]): Either[Throwable, CSV] = Try {
+    val listMap = ListMap.from(map)
+    val headers = Headers(listMap.keys.map(Header.apply).toVector)
 
-    val stringRows = (map.head._2.indices by 1).map { i =>
-      map
+    val stringRows = (listMap.head._2.indices by 1).map { i =>
+      listMap
         .values
         .map(cols => cols(i))
     }
