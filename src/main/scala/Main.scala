@@ -2,23 +2,20 @@ package com.ghurtchu
 
 import csv._
 
-import javax.swing.SortOrder
-import scala.collection.immutable.ListMap
-
 object Main extends scala.App {
 
-  val map: Map[String, List[String]] = Map(
-    "name"           -> List("Nika", "Gio", "Toko"),
-    "age"            -> List("23", "17", "21"),
-    "career"         -> List("software", "law", "journalism"),
-    "last_name"      -> List("ghurtchumelia", "ghurtchumelia", "ghurtchumelia"),
-    "marital_status" -> List("single", "single", "single")
-  )
+  case class Student(name: String, age: Int)
 
-  val processed = for {
-    csv  <- CSV.fromMap(map)
-    csv2 <- csv.sortHeaders(Ascending)
-    _    <- csv2.display
+  val rawCsv =
+    """name,surname,age,career
+      |john,doe,20,carpenter
+      |ann,miller,25,banker
+      |michael,lewis,30,singer
+      |""".stripMargin
+
+  val studentsFromCsv = for {
+    csv      <- CSV.fromString(rawCsv)
+    _        <- csv.display
   } yield csv
 
 }

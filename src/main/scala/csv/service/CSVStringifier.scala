@@ -6,11 +6,11 @@ import csv._
 
 import scala.collection.mutable
 
-private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelector,
-                                 private val headers: Headers,
-                                 private val rows: Rows) extends CanPrettify {
+private[csv] class CSVStringifier(private val csvColumnSelector: CSVColumnSelector,
+                                  private val headers: Headers,
+                                  private val rows: Rows) extends CanPrettify {
 
-  override def prettify: String = {
+  override def stringify: String = {
     val maxLengthPerColumn: Vector[Int] = headers.values.map(_.value).map { header =>
       csvColumnSelector.column(header)
         .fold(0) { col =>
@@ -39,8 +39,8 @@ private[csv] class CSVPrettifier(private val csvColumnSelector: CSVColumnSelecto
   }
 }
 
-private[csv] object CSVPrettifier {
+private[csv] object CSVStringifier {
 
-  def apply(csvColumnSelector: CSVColumnSelector): CSVPrettifier =
-    new CSVPrettifier(csvColumnSelector, csvColumnSelector.headers, csvColumnSelector.rows)
+  def apply(csvColumnSelector: CSVColumnSelector): CSVStringifier =
+    new CSVStringifier(csvColumnSelector, csvColumnSelector.headers, csvColumnSelector.rows)
 }

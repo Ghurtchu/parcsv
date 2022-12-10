@@ -32,6 +32,8 @@ package object csv {
 
   final case class Row(cells: Vector[Cell]) {
 
+    def apply(header: String): String = cells.find(_.headerValue == header).fold("")(_.value)
+
     override def toString: String = {
       val repr = cells.map(_.toString).toString
       val reprNormalized = repr.substring(5, repr.length - 1)
@@ -47,6 +49,8 @@ package object csv {
       value != "" && value != "N/A"
     }
 
+    def filterCells(f: Cell => Boolean): Vector[Cell] = cells.filter(f)
+
   }
 
   final case class Rows(values: Vector[Row]) extends Mergeable {
@@ -60,7 +64,7 @@ package object csv {
 
     def size: Int = values.size
 
-    def filter(f: Cell => Boolean): Either[Throwable, Rows] = Try {
+    def filterCells(f: Cell => Boolean): Either[Throwable, Rows] = Try {
       Rows {
         values.filter { row =>
           row
@@ -70,7 +74,11 @@ package object csv {
       }
     }.toEither
 
+    def filterRows(f: Row => Boolean): Vector[Row] = values.filter(f)
+
     def :+(row: Row): Rows = Rows(values :+ row)
+
+    def mapRows[A](f: Row => A): Vector[A] = values.map(f)
 
   }
 
@@ -95,6 +103,16 @@ package object csv {
     }.toEither
 
     def :+(header: Header): Headers = Headers(values :+ header)
+
+    def valuesAsString: Vector[String] = values.map(_.value)
+
+    def count: Int = values.size
+
+    def slice(start: Int, end: Int): Vector[Header] = values.slice(start, end)
+
+    def contains(header: Header): Boolean = values.contains(header)
+
+    def map[A](f: Header => A): Vector[A] = values.map(f)
 
   }
 
@@ -138,6 +156,8 @@ package object csv {
 
       CSV.apply(Headers(headers), Rows(rows))
     }
+
+    def filter(f: Column => Boolean): Vector[Column] = values filter f
 
   }
 
