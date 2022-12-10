@@ -371,7 +371,7 @@ object CSV {
 
   // I know it's mutable, be calm purist, it's a local function, it's real world baby!
   def apply(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
-    val rowsBuffer = collection.mutable.Stack.empty[Row]
+    val rowsBuffer = collection.mutable.Queue.empty[Row]
     rows.values.foreach { row =>
       val sortedCells = collection.mutable.Stack.empty[Cell]
       val copiedCells = collection.mutable.Stack(row.cells: _*)
@@ -382,7 +382,7 @@ object CSV {
           }
         }
       }
-      rowsBuffer.append(Row(sortedCells.toVector))
+      rowsBuffer.enqueue(Row(sortedCells.toVector))
     }
 
     Try(new CSV(headers, Rows(rowsBuffer.toVector)))
