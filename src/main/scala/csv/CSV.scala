@@ -323,6 +323,30 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     CSV(headers, rows :+ newRow)
   }
 
+  def addColumn(name: String, cells: Seq[String] = List.empty): Either[Throwable, CSV] = {
+    val newHeader = Header(name)
+    val newHeaders = headers :+ newHeader
+    val newRows = cells.length match {
+      case 0 => {
+        val notAvailables = Vector.fill(rows.size + 1)("N/A")
+        Rows {
+          rows.values.zip(notAvailables).map { case (row, cellString) =>
+            Row(row.cells :+ Cell(row.index, newHeader, cellString))
+          }
+        }
+      }
+      case _ => {
+        Rows {
+          rows.values.zip(cells).map { case (row, cellString) =>
+            Row(row.cells :+ Cell(row.index, newHeader, cellString))
+          }
+        }
+      }
+    }
+
+    CSV(newHeaders, newRows)
+  }
+
 }
 
 object CSV {

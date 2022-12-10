@@ -93,6 +93,9 @@ package object csv {
           .filter(f)
       }
     }.toEither
+
+    def :+(header: Header): Headers = Headers(values :+ header)
+
   }
 
   final case class Content(data: String) {

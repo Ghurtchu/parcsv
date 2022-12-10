@@ -13,8 +13,9 @@ object Main extends scala.App {
 
   for {
     csv  <- CSV.fromString(rawCsv)
-    csv2 <- csv.addRow(Seq("juris", "35", "male", "policeman", "married"))
-    _    <- csv2.display
+    csv2 <- csv.addColumn("hasCock", List("yes", "yes", "no"))
+    csv3 <- csv2.addRow(Seq("juris", "35", "male", "policeman", "married", "yes"))
+    _    <- csv3.display
   } yield csv
 
 }
