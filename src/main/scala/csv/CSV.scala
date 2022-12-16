@@ -3,6 +3,7 @@ package csv
 
 import csv.service._
 
+import java.lang.reflect.Field
 import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
 import scala.util.Try
