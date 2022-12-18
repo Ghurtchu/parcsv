@@ -9,101 +9,65 @@ import scala.util.Try
 
 final class CSV private (private[csv] val headers: Headers, private[csv] val rows: Rows) {
 
+  implicit private val csv: CSV = this
+
   private[csv] val headerPlaceMapping: Map[Header, Int] =
     headers
       .values
       .zipWithIndex
       .toMap
 
-  override val toString: String =
-    CSVStringifier(ColumnService(this))
-      .stringify
+  override val toString: String = CSVStringifier(ColumnService.apply).stringify
 
-  def raw: Content =
-    ContentBuilder(headers, rows)
-      .content
+  def raw: Content = ContentBuilder(headers, rows).content
 
-  def keepColumns(names: String*): Either[Throwable, CSV] =
-    ColumnService(this)
-      .keepColumns(names: _*)
+  def keepColumns(names: String*): Either[Throwable, CSV] = ColumnService.apply.keepColumns(names: _*)
 
-  def keepColumns(range: Range): Either[Throwable, CSV] =
-    ColumnService(this)
-      .keepColumns(range)
+  def keepColumns(range: Range): Either[Throwable, CSV] = ColumnService.apply.keepColumns(range)
 
-  def dropColumns(names: String*): Either[Throwable, CSV] =
-    ColumnService(this)
-      .dropColumns(names: _*)
+  def dropColumns(names: String*): Either[Throwable, CSV] = ColumnService.apply.dropColumns(names: _*)
 
-  def dropColumns(range: Range): Either[Throwable, CSV] =
-    ColumnService(this)
-      .dropColumns(range)
+  def dropColumns(range: Range): Either[Throwable, CSV] = ColumnService.apply.dropColumns(range)
 
-  def filterHeaders(predicate: Header => Boolean): Either[Throwable, Headers] =
-    headers.filter(predicate)
+  def filterHeaders(predicate: Header => Boolean): Either[Throwable, Headers] = headers.filter(predicate)
 
-  def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] =
-    CSVWriter(raw)
-      .save(filePath)
+  def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] = CSVWriter(raw).save(filePath)
 
-  def filterColumns(predicate: Column => Boolean): Either[Throwable, CSV] =
-    ColumnService(this)
-      .filterColumns(predicate)
+  def filterColumns(predicate: Column => Boolean): Either[Throwable, CSV] = ColumnService.apply.filterColumns(predicate)
 
-  private def filterColumns(csv: CSV, pipe: FilterColumnPipe): Either[Throwable, CSV] =
-    ColumnService(csv)
-      .filterColumns(pipe)
+  private def filterColumns(csv: CSV, pipe: FilterColumnPipe): Either[Throwable, CSV] = ColumnService(csv).filterColumns(pipe)
 
-  def mapHeaders(transformer: Header => String): Either[Throwable, CSV] =
-    HeaderService(this)
-      .mapHeaders(transformer)
+  def mapHeaders(transformer: Header => String): Either[Throwable, CSV] = HeaderService.apply.mapHeaders(transformer)
 
-  def transformColumns(transformer: Column => Column): Either[Throwable, CSV] =
-    ColumnService(this)
-      .transformColumns(transformer)
+  def transformColumns(transformer: Column => Column): Either[Throwable, CSV] = ColumnService.apply.transformColumns(transformer)
 
-  def transformColumn(name: String)(transformer: Column => Column): Either[Throwable, CSV] =
-    ColumnService(this)
-      .transformColumn(name)(transformer)
+  def transformColumn(name: String)(transformer: Column => Column): Either[Throwable, CSV] = ColumnService.apply.transformColumn(name)(transformer)
 
-  private def transformColumns(csv: CSV, pipe: TransformColumnPipe): Either[Throwable, CSV] =
-    ColumnService(csv)
-      .transformColumns(pipe)
+  private def transformColumns(csv: CSV, pipe: TransformColumnPipe): Either[Throwable, CSV] = ColumnService(csv).transformColumns(pipe)
 
-  def display: Either[Throwable, Unit] =
-    Try(println(this)).toEither
+  def display: Either[Throwable, Unit] = Try(println(this)).toEither
 
-  def keepRows(range: Range): Either[Throwable, CSV] =
-    RowService(this)
-      .keepRows(range)
+  def keepRows(range: Range): Either[Throwable, CSV] = RowService.apply.keepRows(range)
 
-  def keepRows(indices: Int*): Either[Throwable, CSV] =
-    RowService(this)
-      .keepRows(indices: _*)
+  def keepRows(indices: Int*): Either[Throwable, CSV] = RowService.apply.keepRows(indices: _*)
 
-  def dropRows(range: Range): Either[Throwable, CSV] =
-    RowService(this)
-      .keepRows(range)
+  def dropRows(range: Range): Either[Throwable, CSV] = RowService.apply.keepRows(range)
 
-  def dropRows(indices: Int*): Either[Throwable, CSV] =
-    RowService(this)
-      .keepRows(indices: _*)
+  def dropRows(indices: Int*): Either[Throwable, CSV] = RowService.apply.keepRows(indices: _*)
 
-  def sortHeaders(ordering: SortOrdering): Either[Throwable, CSV] =
-    SortService(this)
-      .sortHeaders(ordering)
+  def sortHeaders(ordering: SortOrdering): Either[Throwable, CSV] = SortService.apply.sortHeaders(ordering)
 
-  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] =
-    SortService(this, name)
-      .sortByColumn(ordering)
+  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] = SortService(name).sortByColumn(ordering)
 
-  def filterRows(predicate: Cell => Boolean): Either[Throwable, CSV] =
-    RowService(this)
-      .filterRows(predicate)
+  def filterRows(predicate: Cell => Boolean): Either[Throwable, CSV] = RowService.apply.filterRows(predicate)
 
-  private def filterRows(csv: CSV, pipe: FilterRowPipe): Either[Throwable, CSV] =
-    RowService(csv)
-      .filterRows(pipe)
+  private def filterRows(csv: CSV, pipe: FilterRowPipe): Either[Throwable, CSV] = RowService(csv).filterRows(pipe)
+
+  def addRow(values: Seq[String]): Either[Throwable, CSV] = RowService.apply.addRow(values)
+
+  def addColumn(name: String, values: Seq[String] = List.empty): Either[Throwable, CSV] = ColumnService.apply.addColumn(name, values)
+
+  def mapRows[A](f: Row => A): Either[Throwable, Vector[A]] = Try(rows.mapRows(f)).toEither
 
   def transformVia(pipeline: Seq[UntypedPipe]): Either[Throwable, CSV] = {
 
@@ -126,17 +90,6 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
 
     loop(this, pipeline)
   }
-
-  def addRow(values: Seq[String]): Either[Throwable, CSV] =
-    RowService(this)
-      .addRow(values)
-
-  def addColumn(name: String, values: Seq[String] = List.empty): Either[Throwable, CSV] =
-    ColumnService(this)
-      .addColumn(name, values)
-
-  def mapRows[A](f: Row => A): Either[Throwable, Vector[A]] =
-    Try(rows.mapRows(f)).toEither
 
 }
 

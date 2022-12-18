@@ -127,6 +127,6 @@ private[csv] class ColumnService(val csv: CSV) extends CanSelectColumns {
 
 private[csv] object ColumnService {
 
-  def apply(csv: CSV): ColumnService =
+  def apply(implicit csv: CSV): ColumnService =
     new ColumnService(csv)
 }

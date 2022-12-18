@@ -99,6 +99,6 @@ private[csv] class RowService(val csv: CSV) extends CanSelectRow {
 
 private[csv] object RowService {
 
-  def apply(csv: CSV): RowService =
+  def apply(implicit csv: CSV): RowService =
     new RowService(csv)
 }

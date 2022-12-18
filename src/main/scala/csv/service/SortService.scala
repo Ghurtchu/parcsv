@@ -25,8 +25,8 @@ class SortService(val csv: CSV, val colName: String = "") {
 
 object SortService {
 
-  def apply(csv: CSV): SortService = new SortService(csv)
+  def apply(implicit csv: CSV): SortService = new SortService(csv)
 
-  def apply(csv: CSV, colName: String) = new SortService(csv, colName)
+  def apply(colName: String)(implicit csv: CSV) = new SortService(csv, colName)
 
 }
