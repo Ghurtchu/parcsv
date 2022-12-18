@@ -6,7 +6,7 @@ import csv._
 
 import scala.util.Try
 
-private[csv] class RowSelector(private val rows: Rows) extends CanSelectRow {
+private[csv] class RowService(private val rows: Rows) extends CanSelectRow {
 
   override def row(index: Int): Option[Row] =
     Try(rows.values(index))
@@ -32,8 +32,8 @@ private[csv] class RowSelector(private val rows: Rows) extends CanSelectRow {
 
 }
 
-private[csv] object RowSelector {
+private[csv] object RowService {
 
-  def apply(rows: Rows): RowSelector =
-    new RowSelector(rows)
+  def apply(rows: Rows): RowService =
+    new RowService(rows)
 }

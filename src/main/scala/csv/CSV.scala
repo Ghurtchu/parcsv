@@ -20,26 +20,26 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
       .content
 
   def keepColumns(names: String*): Either[Throwable, CSV] =
-    ColumnSelector(this)
+    ColumnService(this)
       .keepColumns(names: _*)
 
   def keepColumns(range: Range): Either[Throwable, CSV] =
-    ColumnSelector(this)
+    ColumnService(this)
       .keepColumns(range)
 
   def dropColumns(names: String*): Either[Throwable, CSV] =
-    ColumnSelector(this)
+    ColumnService(this)
       .dropColumns(names: _*)
 
   def dropColumns(range: Range): Either[Throwable, CSV] =
-    ColumnSelector(this)
+    ColumnService(this)
       .dropColumns(range)
 
-  def filterHeaders(f: Header => Boolean): Either[Throwable, Headers] =
-    headers.filter(f)
+  def filterHeaders(predicate: Header => Boolean): Either[Throwable, Headers] =
+    headers.filter(predicate)
 
   override val toString: String =
-    CSVStringifier(ColumnSelector(this))
+    CSVStringifier(ColumnService(this))
       .stringify
 
   def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] =
@@ -47,12 +47,12 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
       .save(filePath)
 
   def filterColumns(f: Column => Boolean): Either[Throwable, CSV] =
-    ColumnSelector(this)
+    ColumnService(this)
       .columns(headers.valuesAsString: _*)
       .fold(Left.apply, cols => Columns(cols.filter(f)).toCSV)
 
   private def filterColumns(csv: CSV, pipe: FilterColumnPipe): Either[Throwable, CSV] = {
-    val columns = ColumnSelector(csv)
+    val columns = ColumnService(csv)
       .columns(headers.map(_.value): _*)
 
     @tailrec
@@ -71,73 +71,32 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
     columns.fold(Left.apply, loop(csv, _, pipe))
   }
 
-  def mapHeaders(f: Header => String): Either[Throwable, CSV] = {
-    val transformedHeaders = Headers(headers.map(f andThen Header.apply))
-    val transformedRows = Rows {
-      rows.mapRows { row =>
-        Row {
-          row.cells.zip(transformedHeaders.values).map { case (cell, header) =>
-            cell.copy(header = header)
-          }
-        }
-      }
-    }
+  def mapHeaders(transformer: Header => String): Either[Throwable, CSV] =
+    HeaderService(this)
+      .mapHeaders(transformer)
 
-    CSV(transformedHeaders, transformedRows)
-  }
+  def transformColumns(transformer: Column => Column): Either[Throwable, CSV] =
+    ColumnService(this)
+      .transformColumns(transformer)
 
-  def transformColumns(f: Column => Column): Either[Throwable, CSV] =
-    ColumnSelector(this)
-      .columns(headers.values.map(_.value): _*)
-      .fold(Left.apply, col => Columns(col.values.map(f)).toCSV)
+  def transformColumn(name: String)(transformer: Column => Column): Either[Throwable, CSV] =
+    ColumnService(this)
+      .transformColumn(name)(transformer)
 
-  def transformColumn(name: String)(f: Column => Column): Either[Throwable, CSV] =
-    ColumnSelector(this)
-      .columns(headers.values.map(_.value): _*)
-      .fold(Left.apply, cols => {
-        Columns {
-          cols.values.map { col =>
-              if (col.header.value == name) {
-                val newCol = f(col)
-
-                newCol.copy(cells = newCol.cells.map(_.copy(header = newCol.header)))
-              }
-              else col
-            }
-        }.toCSV
-      })
-
-
-  private def transformColumns(csv: CSV, pipe: TransformColumnPipe): Either[Throwable, CSV] = {
-    val columns = ColumnSelector(csv)
-      .columns(headers.values.map(_.value): _*)
-
-    @tailrec
-    def loop(currCSV: CSV, currColumns: Columns, currPipe: TransformColumnPipe): Either[Throwable, CSV] = {
-      if (currPipe.functions.isEmpty) Right(currCSV)
-      else {
-        val newCols = Columns(currColumns.values.map(currPipe.functions.head))
-
-        newCols.toCSV match {
-          case Left(err) => Left(err)
-          case Right(csv) => loop(csv, newCols, TransformColumnPipe(currPipe.functions.tail: _*))
-        }
-      }
-    }
-
-    columns.fold(Left.apply, loop(csv, _, pipe))
-  }
+  private def transformColumns(csv: CSV, pipe: TransformColumnPipe): Either[Throwable, CSV] =
+    ColumnService(csv)
+      .transformColumns(pipe)
 
   def display: Either[Throwable, Unit] =
     Try(println(this)).toEither
 
   def keepRows(range: Range): Either[Throwable, CSV] =
-    RowSelector(rows)
+    RowService(rows)
       .withRows(range)
       .fold(Left.apply, CSV(headers, _))
 
   def keepRows(indices: Int*): Either[Throwable, CSV] =
-    RowSelector(rows)
+    RowService(rows)
       .rows(indices: _*)
       .fold(Left.apply, CSV(headers, _))
 
@@ -154,12 +113,12 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
   }
 
   def sortHeaders(ordering: SortOrdering): Either[Throwable, CSV] =
-    SortOperator(this)
+    SortService(this)
       .sortHeaders(ordering)
 
   def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] = {
     val isNumeric = rows.values.flatMap(_.cells.find(_.header.value == name)).forall(_.isNumeric)
-    SortOperator(this, name)
+    SortService(this, name)
       .sortByColumn(ordering, isNumeric)
   }
 
