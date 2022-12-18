@@ -177,7 +177,7 @@ package object csv {
     def ++(them: Seq[UntypedPipe]): Seq[UntypedPipe] = self +: them
   }
 
-  type UntypedPipe = Pipe[_, _]
+  private [csv] type UntypedPipe = Pipe[_, _]
 
   sealed trait Pipe[-A, +B] {
     def functions: Seq[A => B]

@@ -3,7 +3,7 @@ package csv.service
 
 import csv._
 
-final class HeaderService(val csv: CSV) {
+private[csv] final class HeaderService(val csv: CSV) {
 
   def mapHeaders(f: Header => String): Either[Throwable, CSV] = {
     val transformedHeaders = Headers(csv.headers.map(f andThen Header.apply))
@@ -25,7 +25,7 @@ final class HeaderService(val csv: CSV) {
 
 }
 
-object HeaderService {
+private[csv] object HeaderService {
   def apply(implicit csv: CSV): HeaderService = new HeaderService(csv)
 }
 

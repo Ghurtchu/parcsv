@@ -5,7 +5,7 @@ import csv._
 
 import scala.annotation.tailrec
 
-class PipeService(val csv: CSV) {
+private[csv] class PipeService(val csv: CSV) {
 
   def transformVia(pipeline: Seq[UntypedPipe]): Either[Throwable, CSV] = {
 
@@ -31,6 +31,6 @@ class PipeService(val csv: CSV) {
 
 }
 
-object PipeService {
+private[csv] object PipeService {
   def apply(implicit csv: CSV): PipeService = new PipeService(csv)
 }

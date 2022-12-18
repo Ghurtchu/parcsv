@@ -3,6 +3,8 @@ package csv
 
 import csv.service._
 
+import java.io.File
+
 final class CSV private[csv] (private[csv] val headers: Headers, private[csv] val rows: Rows) {
 
   import scala.util.Try
@@ -135,7 +137,9 @@ object CSV {
 
   def fromString(rawCsv: String): Either[Throwable, CSV] = CSVBuilder fromString rawCsv
 
-  def fromFile(path: String): Either[Throwable, CSV] = CSVBuilder fromFile path
+  def fromFile(path: String): Either[Throwable, CSV] = CSVBuilder.fromFile(path)
+
+  def fromFile(file: File): Either[Throwable, CSV] = CSVBuilder.fromFile(file)
 
   def fromMap(map: Map[String, Seq[String]]): Either[Throwable, CSV] = CSVBuilder fromMap map
 

@@ -1,21 +1,29 @@
 package com.ghurtchu
 package csv.service
 
+import java.io.File
 import scala.collection.immutable.ListMap
+import scala.io.Source
 
-object CSVBuilder {
+private[csv] object CSVBuilder {
 
   import scala.util._
   import scala.io.Source.{fromFile => read}
-  import com.ghurtchu.csv._
+  import csv._
 
   def fromString(csvContent: String): Either[Throwable, CSV] =
     Try(new CSV(extractHeaders(csvContent), extractRows(csvContent))).toEither
 
-  def fromFile(path: String): Either[Throwable, CSV] = Try {
-    val file = read(path)
-    val csvContent = file.mkString.replace("\r", "")
-    file.close()
+  def fromFile(path: String): Either[Throwable, CSV] =
+    fromFile(ReadFrom.path(path))
+
+  def fromFile(file: File): Either[Throwable, CSV] =
+    fromFile(ReadFrom.file(file))
+
+  private def fromFile(readFrom: ReadFrom): Either[Throwable, CSV] = Try {
+    val src = readFrom.foldMap(read, read)
+    val csvContent = src.mkString.replace("\r", "")
+    src.close()
     val headers = extractHeaders(csvContent)
     val rows = extractRows(csvContent)
 
@@ -96,6 +104,22 @@ object CSVBuilder {
   }
 
   private def isComplexString(line: String) = !line.startsWith(",") && !line.endsWith(",")
+
+
+  private[csv] sealed trait ReadFrom { self =>
+    def foldMap(fileF: File => Source, pathF: String => Source): Source = self match {
+      case ReadFrom.FromFile(f) => fileF(f)
+      case ReadFrom.FromPath(p) => pathF(p)
+    }
+  }
+
+  private[csv] object ReadFrom {
+    final case class FromFile(file: File)   extends ReadFrom
+    final case class FromPath(path: String) extends ReadFrom
+
+    def file(file: File): FromFile = FromFile(file)
+    def path(path: String): FromPath = FromPath(path)
+  }
 
 
 }

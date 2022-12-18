@@ -3,7 +3,7 @@ package csv.service
 
 import csv.{CSV, Headers, Row, Rows, SortOrdering}
 
-class SortService(val csv: CSV, val colName: String = "") {
+private[csv] class SortService(val csv: CSV, val colName: String = "") {
 
   def sortByColumn(ordering: SortOrdering): Either[Throwable, CSV] = {
     val isNumeric = csv.rows.values.flatMap(_.cells.find(_.header.value == colName)).forall(_.isNumeric)
@@ -23,7 +23,7 @@ class SortService(val csv: CSV, val colName: String = "") {
 
 }
 
-object SortService {
+private[csv] object SortService {
 
   def apply(implicit csv: CSV): SortService = new SortService(csv)
 
