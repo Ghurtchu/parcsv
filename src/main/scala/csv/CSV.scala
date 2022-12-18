@@ -9,7 +9,7 @@ import scala.util.Try
 
 final class CSV private (private[csv] val headers: Headers, private[csv] val rows: Rows) {
 
-  private val headerPlaceMapping: Map[Header, Int] =
+  private[csv] val headerPlaceMapping: Map[Header, Int] =
     headers
       .values
       .zipWithIndex
@@ -43,7 +43,7 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
     headers filter f
 
   override val toString: String =
-    CSVStringifier(ColumnSelector(headerPlaceMapping, headers, rows))
+    CSVStringifier(ColumnSelector(this))
       .stringify
 
   def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] =
@@ -51,12 +51,12 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
       .save(filePath)
 
   def filterColumns(f: Column => Boolean): Either[Throwable, CSV] =
-    ColumnSelector(headerPlaceMapping, headers, rows)
+    ColumnSelector(this)
       .columns(headers.valuesAsString: _*)
       .fold(Left.apply, cols => Columns(cols.filter(f)).toCSV)
 
   private def filterColumns(csv: CSV, pipe: FilterColumnPipe): Either[Throwable, CSV] = {
-    val columns = ColumnSelector(csv.headerPlaceMapping, csv.headers, csv.rows)
+    val columns = ColumnSelector(csv)
       .columns(headers.map(_.value): _*)
 
     @tailrec
@@ -91,12 +91,12 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
   }
 
   def transformColumns(f: Column => Column): Either[Throwable, CSV] =
-    ColumnSelector(headerPlaceMapping, headers, rows)
+    ColumnSelector(this)
       .columns(headers.values.map(_.value): _*)
       .fold(Left.apply, col => Columns(col.values.map(f)).toCSV)
 
   def transformColumn(name: String)(f: Column => Column): Either[Throwable, CSV] =
-    ColumnSelector(headerPlaceMapping, headers, rows)
+    ColumnSelector(this)
       .columns(headers.values.map(_.value): _*)
       .fold(Left.apply, cols => {
         Columns {
@@ -113,7 +113,7 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
 
 
   private def transformColumns(csv: CSV, pipe: TransformColumnPipe): Either[Throwable, CSV] = {
-    val columns = ColumnSelector(csv.headerPlaceMapping, csv.headers, csv.rows)
+    val columns = ColumnSelector(csv)
       .columns(headers.values.map(_.value): _*)
 
     @tailrec

@@ -42,5 +42,5 @@ private[csv] class CSVStringifier(private val csvColumnSelector: ColumnSelector,
 private[csv] object CSVStringifier {
 
   def apply(csvColumnSelector: ColumnSelector): CSVStringifier =
-    new CSVStringifier(csvColumnSelector, csvColumnSelector.headers, csvColumnSelector.rows)
+    new CSVStringifier(csvColumnSelector, csvColumnSelector.csv.headers, csvColumnSelector.csv.rows)
 }
