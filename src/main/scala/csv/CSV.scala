@@ -20,27 +20,23 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
       .content
 
   def keepColumns(names: String*): Either[Throwable, CSV] =
-    CSV(Headers(names.map(Header.apply).toVector), rows)
+    ColumnSelector(this)
+      .keepColumns(names: _*)
 
-  def keepColumns(range: Range): Either[Throwable, CSV] = {
-    val keptHeaders = Headers(headers.slice(range.start, range.end + 1))
-    val keptRows = Rows(rows.mapRows(row => Row(row.filterCells(cell => keptHeaders.contains(cell.header)))))
-
-    CSV(keptHeaders, keptRows)
-  }
+  def keepColumns(range: Range): Either[Throwable, CSV] =
+    ColumnSelector(this)
+      .keepColumns(range)
 
   def dropColumns(names: String*): Either[Throwable, CSV] =
-    keepColumns(headers.valuesAsString.toSet.diff(names.toSet).toSeq: _*)
+    ColumnSelector(this)
+      .dropColumns(names: _*)
 
-  def dropColumns(range: Range): Either[Throwable, CSV] = {
-    val keptHeaders = Headers(headers.slice(0, range.start) ++ headers.slice(range.end + 1, headers.count))
-    val keptColumns = Rows(rows.mapRows(row => Row(row.filterCells(cell => keptHeaders.contains(cell.header)))))
-
-    CSV(keptHeaders, keptColumns)
-  }
+  def dropColumns(range: Range): Either[Throwable, CSV] =
+    ColumnSelector(this)
+      .dropColumns(range)
 
   def filterHeaders(f: Header => Boolean): Either[Throwable, Headers] =
-    headers filter f
+    headers.filter(f)
 
   override val toString: String =
     CSVStringifier(ColumnSelector(this))

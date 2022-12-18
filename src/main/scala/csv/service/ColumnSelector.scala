@@ -27,6 +27,27 @@ private[csv] class ColumnSelector(val csv: CSV) extends CanSelectColumns {
     }
   }.toEither
 
+  def keepColumns(names: String*): Either[Throwable, CSV] =
+    CSV(Headers(names.map(Header.apply).toVector), csv.rows)
+
+  def keepColumns(range: Range): Either[Throwable, CSV] = {
+    val keptHeaders = Headers(csv.headers.slice(range.start, range.end + 1))
+    val keptRows = Rows(csv.rows.mapRows(row => Row(row.filterCells(cell => keptHeaders.contains(cell.header)))))
+
+    CSV(keptHeaders, keptRows)
+  }
+
+  def dropColumns(names: String*): Either[Throwable, CSV] =
+    keepColumns(csv.headers.valuesAsString.toSet.diff(names.toSet).toSeq: _*)
+
+  def dropColumns(range: Range): Either[Throwable, CSV] = {
+    val keptHeaders = Headers(csv.headers.slice(0, range.start) ++ csv.headers.slice(range.end + 1, csv.headers.count))
+    val keptColumns = Rows(csv.rows.mapRows(row => Row(row.filterCells(cell => keptHeaders.contains(cell.header)))))
+
+    CSV(keptHeaders, keptColumns)
+  }
+
+
 }
 
 private[csv] object ColumnSelector {
