@@ -3,12 +3,11 @@ package csv
 
 import csv.service._
 
-import java.lang.reflect.Field
 import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
 import scala.util.Try
 
-final class CSV private (private val headers: Headers, private val rows: Rows) {
+final class CSV private (private[csv] val headers: Headers, private[csv] val rows: Rows) {
 
   private val headerPlaceMapping: Map[Header, Int] =
     headers
@@ -17,7 +16,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
       .toMap
 
   def raw: Content =
-    CSVContentBuilder(headers, rows)
+    ContentBuilder(headers, rows)
       .content
 
   def keepColumns(names: String*): Either[Throwable, CSV] =
@@ -44,7 +43,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     headers filter f
 
   override val toString: String =
-    CSVStringifier(CSVColumnSelector(headerPlaceMapping, headers, rows))
+    CSVStringifier(ColumnSelector(headerPlaceMapping, headers, rows))
       .stringify
 
   def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] =
@@ -52,12 +51,12 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
       .save(filePath)
 
   def filterColumns(f: Column => Boolean): Either[Throwable, CSV] =
-    CSVColumnSelector(headerPlaceMapping, headers, rows)
+    ColumnSelector(headerPlaceMapping, headers, rows)
       .columns(headers.valuesAsString: _*)
       .fold(Left.apply, cols => Columns(cols.filter(f)).toCSV)
 
   private def filterColumns(csv: CSV, pipe: FilterColumnPipe): Either[Throwable, CSV] = {
-    val columns = CSVColumnSelector(csv.headerPlaceMapping, csv.headers, csv.rows)
+    val columns = ColumnSelector(csv.headerPlaceMapping, csv.headers, csv.rows)
       .columns(headers.map(_.value): _*)
 
     @tailrec
@@ -92,12 +91,12 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
   }
 
   def transformColumns(f: Column => Column): Either[Throwable, CSV] =
-    CSVColumnSelector(headerPlaceMapping, headers, rows)
+    ColumnSelector(headerPlaceMapping, headers, rows)
       .columns(headers.values.map(_.value): _*)
       .fold(Left.apply, col => Columns(col.values.map(f)).toCSV)
 
   def transformColumn(name: String)(f: Column => Column): Either[Throwable, CSV] =
-    CSVColumnSelector(headerPlaceMapping, headers, rows)
+    ColumnSelector(headerPlaceMapping, headers, rows)
       .columns(headers.values.map(_.value): _*)
       .fold(Left.apply, cols => {
         Columns {
@@ -114,7 +113,7 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
 
 
   private def transformColumns(csv: CSV, pipe: TransformColumnPipe): Either[Throwable, CSV] = {
-    val columns = CSVColumnSelector(csv.headerPlaceMapping, csv.headers, csv.rows)
+    val columns = ColumnSelector(csv.headerPlaceMapping, csv.headers, csv.rows)
       .columns(headers.values.map(_.value): _*)
 
     @tailrec
@@ -137,12 +136,12 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     Try(println(this)).toEither
 
   def keepRows(range: Range): Either[Throwable, CSV] =
-    CSVRowSelector(rows)
+    RowSelector(rows)
       .withRows(range)
       .fold(Left.apply, CSV(headers, _))
 
   def keepRows(indices: Int*): Either[Throwable, CSV] =
-    CSVRowSelector(rows)
+    RowSelector(rows)
       .rows(indices: _*)
       .fold(Left.apply, CSV(headers, _))
 
@@ -158,20 +157,13 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     CSV(headers, newRows)
   }
 
-  def sortHeaders(ordering: SortOrdering): Either[Throwable, CSV] = {
-    implicit val (headersOrderng, cellsOrdering) = SortOrdering.fromSortOrder(ordering)
-    val sortedHeaders = Headers(headers.values.sorted)
-    val sortedRows = Rows(rows.mapRows(_.cells.sorted).map(Row.apply))
+  def sortHeaders(ordering: SortOrdering): Either[Throwable, CSV] =
+    SortOperator(this)
+      .sortHeaders(ordering)
 
-    CSV(sortedHeaders, sortedRows)
-  }
-
-  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] = {
-    implicit val rowsOrdering: Ordering[Row] = SortOrdering.defineHeadersOrdering(name, ordering)
-    val sortedRows = Rows(rows.values.sorted)
-
-    CSV(headers, sortedRows)
-  }
+  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] =
+    SortOperator(this, name)
+      .sortByColumn(ordering)
 
   def dropRows(indices: Int*): Either[Throwable, CSV] = {
     val keptRows = Rows {
@@ -291,7 +283,7 @@ object CSV {
   }.toEither
 
   // I know it's mutable, be calm purist, it's a local function, it's real world baby!
-  def apply(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
+  private [csv] def apply(headers: Headers, rows: Rows): Either[Throwable, CSV] = {
     val rowsBuffer = collection.mutable.Queue.empty[Row]
     rows.values.foreach { row =>
       val sortedCells = collection.mutable.Stack.empty[Cell]

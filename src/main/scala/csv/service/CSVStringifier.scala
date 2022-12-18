@@ -6,7 +6,7 @@ import csv._
 
 import scala.collection.mutable
 
-private[csv] class CSVStringifier(private val csvColumnSelector: CSVColumnSelector,
+private[csv] class CSVStringifier(private val csvColumnSelector: ColumnSelector,
                                   private val headers: Headers,
                                   private val rows: Rows) extends CanPrettify {
 
@@ -41,6 +41,6 @@ private[csv] class CSVStringifier(private val csvColumnSelector: CSVColumnSelect
 
 private[csv] object CSVStringifier {
 
-  def apply(csvColumnSelector: CSVColumnSelector): CSVStringifier =
+  def apply(csvColumnSelector: ColumnSelector): CSVStringifier =
     new CSVStringifier(csvColumnSelector, csvColumnSelector.headers, csvColumnSelector.rows)
 }

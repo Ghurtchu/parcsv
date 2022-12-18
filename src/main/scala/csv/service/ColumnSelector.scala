@@ -6,9 +6,9 @@ import csv._
 
 import scala.util.Try
 
-private[csv] class CSVColumnSelector(val headerPlaceMapping: Map[Header, Int],
-                                     val headers: Headers,
-                                     val rows: Rows) extends CanSelectColumns {
+private[csv] class ColumnSelector(val headerPlaceMapping: Map[Header, Int],
+                                  val headers: Headers,
+                                  val rows: Rows) extends CanSelectColumns {
 
   override def column(name: String): Option[Column] = {
     if (!headers.values.map(_.value).contains(name)) None
@@ -31,8 +31,8 @@ private[csv] class CSVColumnSelector(val headerPlaceMapping: Map[Header, Int],
 
 }
 
-private[csv] object CSVColumnSelector {
+private[csv] object ColumnSelector {
 
-  def apply(headerPlaceMapping: Map[Header, Int], headers: Headers, rows: Rows): CSVColumnSelector =
-    new CSVColumnSelector(headerPlaceMapping, headers, rows)
+  def apply(headerPlaceMapping: Map[Header, Int], headers: Headers, rows: Rows): ColumnSelector =
+    new ColumnSelector(headerPlaceMapping, headers, rows)
 }

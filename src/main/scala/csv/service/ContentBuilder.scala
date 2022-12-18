@@ -4,7 +4,7 @@ package csv.service
 import csv._
 import csv.api.CanBuildContent
 
-private[csv] class CSVContentBuilder(headers: Headers, rows: Rows) extends CanBuildContent {
+private[csv] class ContentBuilder(headers: Headers, rows: Rows) extends CanBuildContent {
 
   override def content: Content = Content {
       val headersSeparated = headers.values.map(_.value).reduce((h1, h2) => h1 concat "," concat h2)
@@ -20,8 +20,8 @@ private[csv] class CSVContentBuilder(headers: Headers, rows: Rows) extends CanBu
     }
 }
 
-private[csv] object CSVContentBuilder {
+private[csv] object ContentBuilder {
 
-  def apply(headers: Headers, rows: Rows): CSVContentBuilder =
-    new CSVContentBuilder(headers, rows)
+  def apply(headers: Headers, rows: Rows): ContentBuilder =
+    new ContentBuilder(headers, rows)
 }
