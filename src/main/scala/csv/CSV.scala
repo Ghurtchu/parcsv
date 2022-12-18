@@ -51,9 +51,9 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
 
   def keepRows(indices: Int*): Either[Throwable, CSV] = RowService.apply.keepRows(indices: _*)
 
-  def dropRows(range: Range): Either[Throwable, CSV] = RowService.apply.keepRows(range)
+  def dropRows(range: Range): Either[Throwable, CSV] = RowService.apply.dropRows(range)
 
-  def dropRows(indices: Int*): Either[Throwable, CSV] = RowService.apply.keepRows(indices: _*)
+  def dropRows(indices: Int*): Either[Throwable, CSV] = RowService.apply.dropRows(indices: _*)
 
   def sortHeaders(ordering: SortOrdering): Either[Throwable, CSV] = SortService.apply.sortHeaders(ordering)
 
