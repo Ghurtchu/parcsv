@@ -1,16 +1,13 @@
 package com.ghurtchu
 package csv.service
 
-import csv.api.CanPrettify
 import csv._
-
-import scala.collection.mutable
 
 private[csv] class CSVStringifier(private val csvColumnSelector: ColumnService,
                                   private val headers: Headers,
-                                  private val rows: Rows) extends CanPrettify {
+                                  private val rows: Rows) {
 
-  override def stringify: String = {
+  def stringify: String = {
     val maxLengthPerColumn: Vector[Int] = headers.values.map(_.value).map { header =>
       csvColumnSelector.column(header)
         .fold(0) { col =>

@@ -1,15 +1,14 @@
 package com.ghurtchu
 package csv.service
 
-import csv.api.CanSelectColumns
 import csv._
 
 import scala.annotation.tailrec
 import scala.util.Try
 
-private[csv] class ColumnService(val csv: CSV) extends CanSelectColumns {
+private[csv] class ColumnService(val csv: CSV) {
 
-  override def column(name: String): Option[Column] = {
+  def column(name: String): Option[Column] = {
     if (!csv.headers.values.map(_.value).contains(name)) None
     else {
       val header = Header(name)
@@ -20,7 +19,7 @@ private[csv] class ColumnService(val csv: CSV) extends CanSelectColumns {
     }
   }
 
-  override def columns(names: String*): Either[Throwable, Columns] = Try {
+  def columns(names: String*): Either[Throwable, Columns] = Try {
     Columns {
       names
         .toVector

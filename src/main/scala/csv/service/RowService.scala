@@ -1,19 +1,18 @@
 package com.ghurtchu
 package csv.service
 
-import csv.api.CanSelectRow
 import csv._
 
 import scala.annotation.tailrec
 import scala.util.Try
 
-private[csv] class RowService(val csv: CSV) extends CanSelectRow {
+private[csv] class RowService(val csv: CSV) {
 
-  override def row(index: Int): Option[Row] =
+  def row(index: Int): Option[Row] =
     Try(csv.rows.values(index))
       .toOption
 
-  override def withRows(range: Range): Either[Throwable, Rows] = Try {
+  def withRows(range: Range): Either[Throwable, Rows] = Try {
     Rows {
       csv.rows
         .values
