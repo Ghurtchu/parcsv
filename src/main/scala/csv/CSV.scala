@@ -7,15 +7,15 @@ import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
 import scala.util.Try
 
+trait CSVSelf { self =>
+  def self: CSV
+}
+
 final class CSV private (private[csv] val headers: Headers, private[csv] val rows: Rows) {
 
-  implicit private val csv: CSV = this
+  implicit private val self: CSV = this
 
-  private[csv] val headerPlaceMapping: Map[Header, Int] =
-    headers
-      .values
-      .zipWithIndex
-      .toMap
+  private[csv] val headerPlaceMapping: Map[Header, Int] = headers.values.zipWithIndex.toMap
 
   override val toString: String = CSVStringifier(ColumnService.apply).stringify
 
@@ -35,15 +35,11 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
 
   def filterColumns(predicate: Column => Boolean): Either[Throwable, CSV] = ColumnService.apply.filterColumns(predicate)
 
-  private def filterColumns(csv: CSV, pipe: FilterColumnPipe): Either[Throwable, CSV] = ColumnService(csv).filterColumns(pipe)
-
   def mapHeaders(transformer: Header => String): Either[Throwable, CSV] = HeaderService.apply.mapHeaders(transformer)
 
   def transformColumns(transformer: Column => Column): Either[Throwable, CSV] = ColumnService.apply.transformColumns(transformer)
 
   def transformColumn(name: String)(transformer: Column => Column): Either[Throwable, CSV] = ColumnService.apply.transformColumn(name)(transformer)
-
-  private def transformColumns(csv: CSV, pipe: TransformColumnPipe): Either[Throwable, CSV] = ColumnService(csv).transformColumns(pipe)
 
   def display: Either[Throwable, Unit] = Try(println(this)).toEither
 
@@ -61,8 +57,6 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
 
   def filterRows(predicate: Cell => Boolean): Either[Throwable, CSV] = RowService.apply.filterRows(predicate)
 
-  private def filterRows(csv: CSV, pipe: FilterRowPipe): Either[Throwable, CSV] = RowService(csv).filterRows(pipe)
-
   def addRow(values: Seq[String]): Either[Throwable, CSV] = RowService.apply.addRow(values)
 
   def addColumn(name: String, values: Seq[String] = List.empty): Either[Throwable, CSV] = ColumnService.apply.addColumn(name, values)
@@ -76,9 +70,9 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
       if (currPipeline.isEmpty) Right(csv)
       else {
         val newCsv = currPipeline.head match {
-          case FilterRowPipe(functions@_*)       => filterRows(csv, FilterRowPipe(functions: _*))
-          case FilterColumnPipe(functions@_*)    => filterColumns(csv, FilterColumnPipe(functions: _*))
-          case TransformColumnPipe(functions@_*) => transformColumns(csv, TransformColumnPipe(functions: _*))
+          case FilterRowPipe(functions@_*)       => RowService(csv).filterRows(FilterRowPipe(functions: _*))
+          case FilterColumnPipe(functions@_*)    => ColumnService(csv).filterColumns(FilterColumnPipe(functions: _*))
+          case TransformColumnPipe(functions@_*) => ColumnService(csv).transformColumns(TransformColumnPipe(functions: _*))
         }
 
         newCsv match {
