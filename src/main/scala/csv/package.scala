@@ -138,6 +138,8 @@ package object csv {
       Column(newHeader, newCells)
     }
 
+    def isNumeric: Boolean = cells.forall(_.isNumeric)
+
   }
 
   final case class Columns(values: Vector[Column]) {
@@ -202,12 +204,18 @@ package object csv {
 
     }
 
-    private[csv] def defineHeadersOrdering(colName: String, ordering: SortOrdering): Ordering[Row] = {
+    private[csv] def defineHeadersOrdering(colName: String, ordering: SortOrdering, isNumeric: Boolean = false): Ordering[Row] = {
       val rowOrdering: Ordering[Row] = (a, b) => {
         (for {
           aVal <- a.cells.find(_.header.value == colName)
           bVal <- b.cells.find(_.header.value == colName)
-        } yield aVal.value.compareTo(bVal.value)).fold(0)(identity)
+        } yield {
+          if (isNumeric) {
+            aVal.value.toDouble.compareTo(bVal.value.toDouble)
+          } else {
+            aVal.value.compareTo(bVal.value)
+          }
+        }).fold(0)(identity)
       }
       ordering match {
         case Asc  => rowOrdering

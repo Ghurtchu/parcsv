@@ -10,15 +10,15 @@ object Main extends scala.App {
 
   val rawString =
     """name,surname,a
-      |nika,gurchu,a
-      |vazha,mela,b
-      |gela,gela,c
+      |nika,gurchu,213
+      |vazha,mela,101
+      |gela,gela,1004
       |""".stripMargin
 
 
   val processed = for {
     csv    <- CSV fromString rawString
-    sorted <- csv.sortByColumn("a", SortOrdering.Desc)
+    sorted <- csv.sortByColumn("surname", SortOrdering.Asc)
     _      <- sorted.display
   } yield sorted
 }

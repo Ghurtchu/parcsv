@@ -5,8 +5,8 @@ import csv.{CSV, Headers, Row, Rows, SortOrdering}
 
 class SortOperator(val csv: CSV, val colName: String = "") {
 
-  def sortByColumn(ordering: SortOrdering): Either[Throwable, CSV] = {
-    implicit val rowsOrdering: Ordering[Row] = SortOrdering.defineHeadersOrdering(colName, ordering)
+  def sortByColumn(ordering: SortOrdering, isNumeric: Boolean): Either[Throwable, CSV] = {
+    implicit val rowsOrdering: Ordering[Row] = SortOrdering.defineHeadersOrdering(colName, ordering, isNumeric)
     val sortedRows = Rows(csv.rows.values.sorted)
 
     CSV(csv.headers, sortedRows)

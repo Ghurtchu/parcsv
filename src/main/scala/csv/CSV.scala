@@ -161,9 +161,11 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
     SortOperator(this)
       .sortHeaders(ordering)
 
-  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] =
+  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] = {
+    val isNumeric = rows.values.flatMap(_.cells.find(_.header.value == name)).forall(_.isNumeric)
     SortOperator(this, name)
-      .sortByColumn(ordering)
+      .sortByColumn(ordering, isNumeric)
+  }
 
   def dropRows(indices: Int*): Either[Throwable, CSV] = {
     val keptRows = Rows {
