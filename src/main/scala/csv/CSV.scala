@@ -15,6 +15,10 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
       .zipWithIndex
       .toMap
 
+  override val toString: String =
+    CSVStringifier(ColumnService(this))
+      .stringify
+
   def raw: Content =
     ContentBuilder(headers, rows)
       .content
@@ -38,38 +42,17 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
   def filterHeaders(predicate: Header => Boolean): Either[Throwable, Headers] =
     headers.filter(predicate)
 
-  override val toString: String =
-    CSVStringifier(ColumnService(this))
-      .stringify
-
   def save(filePath: String = System.currentTimeMillis().toString concat ".csv"): Either[Throwable, Boolean] =
     CSVWriter(raw)
       .save(filePath)
 
-  def filterColumns(f: Column => Boolean): Either[Throwable, CSV] =
+  def filterColumns(predicate: Column => Boolean): Either[Throwable, CSV] =
     ColumnService(this)
-      .columns(headers.valuesAsString: _*)
-      .fold(Left.apply, cols => Columns(cols.filter(f)).toCSV)
+      .filterColumns(predicate)
 
-  private def filterColumns(csv: CSV, pipe: FilterColumnPipe): Either[Throwable, CSV] = {
-    val columns = ColumnService(csv)
-      .columns(headers.map(_.value): _*)
-
-    @tailrec
-    def loop(currCSV: CSV, currColumns: Columns, currPipe: FilterColumnPipe): Either[Throwable, CSV] = {
-      if (currPipe.functions.isEmpty) Right(currCSV)
-      else {
-        val newColumns = Columns(currColumns.values.filter(currPipe.functions.head))
-
-        newColumns.toCSV match {
-          case Left(err)  => Left(err)
-          case Right(csv) => loop(csv, newColumns, FilterColumnPipe(currPipe.functions.tail: _*))
-        }
-      }
-    }
-
-    columns.fold(Left.apply, loop(csv, _, pipe))
-  }
+  private def filterColumns(csv: CSV, pipe: FilterColumnPipe): Either[Throwable, CSV] =
+    ColumnService(csv)
+      .filterColumns(pipe)
 
   def mapHeaders(transformer: Header => String): Either[Throwable, CSV] =
     HeaderService(this)
@@ -91,68 +74,36 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
     Try(println(this)).toEither
 
   def keepRows(range: Range): Either[Throwable, CSV] =
-    RowService(rows)
-      .withRows(range)
-      .fold(Left.apply, CSV(headers, _))
+    RowService(this)
+      .keepRows(range)
 
   def keepRows(indices: Int*): Either[Throwable, CSV] =
-    RowService(rows)
-      .rows(indices: _*)
-      .fold(Left.apply, CSV(headers, _))
+    RowService(this)
+      .keepRows(indices: _*)
 
-  def dropRows(range: Range): Either[Throwable, CSV] = {
-    val newRows = Rows {
-      rows.filterRows { row =>
-        val index = row.cells.head.index
+  def dropRows(range: Range): Either[Throwable, CSV] =
+    RowService(this)
+      .keepRows(range)
 
-        index < range.start || index > range.end
-      }
-    }
-
-    CSV(headers, newRows)
-  }
+  def dropRows(indices: Int*): Either[Throwable, CSV] =
+    RowService(this)
+      .keepRows(indices: _*)
 
   def sortHeaders(ordering: SortOrdering): Either[Throwable, CSV] =
     SortService(this)
       .sortHeaders(ordering)
 
-  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] = {
-    val isNumeric = rows.values.flatMap(_.cells.find(_.header.value == name)).forall(_.isNumeric)
+  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] =
     SortService(this, name)
-      .sortByColumn(ordering, isNumeric)
-  }
+      .sortByColumn(ordering)
 
-  def dropRows(indices: Int*): Either[Throwable, CSV] = {
-    val keptRows = Rows {
-      rows.values.zipWithIndex.filter { case (_, ind) =>
-        !(indices contains ind)
-      }.map(_._1)
-    }
+  def filterRows(predicate: Cell => Boolean): Either[Throwable, CSV] =
+    RowService(this)
+      .filterRows(predicate)
 
-    CSV(headers, keptRows)
-  }
-
-  def filterRows(f: Cell => Boolean): Either[Throwable, CSV] =
-    CSV(headers, Rows(rows.filterRows(_.cells.exists(f))))
-
-  private def filterRows(csv: CSV, pipe: FilterRowPipe): Either[Throwable, CSV] = {
-
-    @tailrec
-    def loop(currCSV: CSV, currRows: Rows, currPipe: FilterRowPipe): Either[Throwable, CSV] = {
-      if (currPipe.functions.isEmpty) Right(currCSV)
-      else {
-        val newRows = Rows(currRows.values.filter(currPipe.functions.head))
-        val newHeaders = Headers(newRows.values.head.cells.map(_.header))
-
-        CSV(newHeaders, newRows) match {
-          case Right(csv) => loop(csv, newRows, FilterRowPipe(currPipe.functions.tail: _*))
-          case Left(err)  => Left(err)
-        }
-      }
-    }
-
-    loop(csv, csv.rows, pipe)
-  }
+  private def filterRows(csv: CSV, pipe: FilterRowPipe): Either[Throwable, CSV] =
+    RowService(csv)
+      .filterRows(pipe)
 
   def transformVia(pipeline: Seq[UntypedPipe]): Either[Throwable, CSV] = {
 
@@ -176,28 +127,13 @@ final class CSV private (private[csv] val headers: Headers, private[csv] val row
     loop(this, pipeline)
   }
 
-  def addRow(values: Seq[String]): Either[Throwable, CSV] = {
-    val newRow = Row {
-      values.toVector.zip(headers.values).map { case (value, header) =>
-        Cell(rows.size, header, value)
-      }
-    }
+  def addRow(values: Seq[String]): Either[Throwable, CSV] =
+    RowService(this)
+      .addRow(values)
 
-    CSV(headers, rows :+ newRow)
-  }
-
-  def addColumn(name: String, cells: Seq[String] = List.empty): Either[Throwable, CSV] = {
-    val newHeader = Header(name)
-    lazy val NAs = Vector.fill(rows.size + 1)("N/A")
-    val colElems = if (cells.nonEmpty) cells else NAs
-    val newRows = Rows {
-      rows.values.zip(colElems).map { case (row, cellString) =>
-        Row(row.cells :+ Cell(row.index, newHeader, cellString))
-      }
-    }
-
-    CSV(headers :+ newHeader, newRows)
-  }
+  def addColumn(name: String, values: Seq[String] = List.empty): Either[Throwable, CSV] =
+    ColumnService(this)
+      .addColumn(name, values)
 
   def mapRows[A](f: Row => A): Either[Throwable, Vector[A]] =
     Try(rows.mapRows(f)).toEither
@@ -258,7 +194,14 @@ object CSV {
     Try(new CSV(headers, Rows(rowsBuffer.toVector))).toEither
   }
 
-  private def extractHeaders(csv: String): Headers = Headers(csv.takeWhile(_ != '\n').split(",").map(Header.apply).toVector)
+  private def extractHeaders(csv: String): Headers =
+    Headers {
+      csv
+        .takeWhile(_ != '\n')
+        .split(",")
+        .map(Header.apply)
+        .toVector
+    }
 
   private def extractRows(csv: String): Rows = {
     val headers: Array[Header] = csv.takeWhile(_ != '\n').split(",").map(Header.apply)

@@ -18,7 +18,7 @@ object Main extends scala.App {
 
   val processed = for {
     csv    <- CSV fromString rawString
-    sorted <- csv.sortByColumn("surname", SortOrdering.Asc)
+    sorted <- csv.sortHeaders(SortOrdering.Asc)
     _      <- sorted.display
   } yield sorted
 }

@@ -5,7 +5,8 @@ import csv.{CSV, Headers, Row, Rows, SortOrdering}
 
 class SortService(val csv: CSV, val colName: String = "") {
 
-  def sortByColumn(ordering: SortOrdering, isNumeric: Boolean): Either[Throwable, CSV] = {
+  def sortByColumn(ordering: SortOrdering): Either[Throwable, CSV] = {
+    val isNumeric = csv.rows.values.flatMap(_.cells.find(_.header.value == colName)).forall(_.isNumeric)
     implicit val rowsOrdering: Ordering[Row] = SortOrdering.defineHeadersOrdering(colName, ordering, isNumeric)
     val sortedRows = Rows(csv.rows.values.sorted)
 
