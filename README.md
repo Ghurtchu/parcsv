@@ -21,24 +21,21 @@ val source =
     |sugar,387,0,100,false
     |""".stripMargin
 
-// let's choose columns filtered by header's value
+// only keep those columns which contain "o" in their header value
 val containsLetter: Column => Boolean = col => col.header.value.contains("o")
 
 // only keeps those rows which have a value less than 10 under "protein" header
-val lowProteinFoodFilter: Row => Boolean = row => {
-  row.cells.exists { cell =>
-    cell.header.value == "protein" && cell.value.toDouble <= 10
-  }
-}
+val lowProteinFoodFilter: Cell => Boolean = cell => cell.belongsTo("protein") && cell.numericValue <= 10
 
 // csv processing
 val newCSV = for {
-  csv  <- CSV.fromString(source) // read
-  csv2 <- csv.keepColumns("food", "protein", "isHealthy") // drop "calories" and "carbs"
-  csv3 <- csv2.filterRows(lowProteinFoodFilter) // take rows with "protein" value less than 10
-  _    <- csv3.display // print it
-  _    <- csv3.save("data/processed_food.csv") //save it
-} yield csv3
+  csv      <- CSV.fromString(source) // read
+  cleaned  <- csv.filterColumns(containsLetter) // drop "carbs" and "isHealthy"
+  filtered <- cleaned.filterRows(lowProteinFoodFilter) // take rows with "protein" value less than 10
+  sorted   <- filtered.sortByColumn("calories", SortOrdering.Desc) // sort by "calories" in descending numeric order
+  _        <- sorted.display // print it
+  _        <- sorted.save("data/processed_food.csv") //save it
+} yield sorted
 ```
 
 Print result:
