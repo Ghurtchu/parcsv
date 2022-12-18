@@ -19,6 +19,10 @@ final class HeaderService(val csv: CSV) {
 
     CSV(transformedHeaders, transformedRows)
   }
+
+  def filterHeaders(predicate: Header => Boolean): Either[Throwable, Headers] =
+    csv.headers.filter(predicate)
+
 }
 
 object HeaderService {

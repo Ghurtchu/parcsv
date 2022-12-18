@@ -94,6 +94,9 @@ private[csv] class RowService(val csv: CSV) {
     CSV(csv.headers, csv.rows :+ newRow)
   }
 
+  def mapRows[A](transformer: Row => A): Either[Throwable, Vector[A]] =
+    Try(csv.rows.mapRows(transformer)).toEither
+
 }
 
 private[csv] object RowService {
