@@ -158,13 +158,19 @@ final class CSV private (private val headers: Headers, private val rows: Rows) {
     CSV(headers, newRows)
   }
 
-  def sortHeaders(sortOrder: CSVSortOrder): Either[Throwable, CSV] = {
-    implicit val headerOrdering: Ordering[Header] = (a, b) => a.value.compareTo(b.value)
-    implicit val cellOrdering: Ordering[Cell] = (a, b) => a.header.value.compareTo(b.value)
+  def sortHeaders(ordering: SortOrdering): Either[Throwable, CSV] = {
+    implicit val (headersOrderng, cellsOrdering) = SortOrdering.fromSortOrder(ordering)
     val sortedHeaders = Headers(headers.values.sorted)
     val sortedRows = Rows(rows.mapRows(_.cells.sorted).map(Row.apply))
 
     CSV(sortedHeaders, sortedRows)
+  }
+
+  def sortByColumn(name: String, ordering: SortOrdering): Either[Throwable, CSV] = {
+    implicit val rowsOrdering: Ordering[Row] = SortOrdering.defineHeadersOrdering(name, ordering)
+    val sortedRows = Rows(rows.values.sorted)
+
+    CSV(headers, sortedRows)
   }
 
   def dropRows(indices: Int*): Either[Throwable, CSV] = {

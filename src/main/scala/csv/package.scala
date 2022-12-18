@@ -185,9 +185,36 @@ package object csv {
   final case class FilterColumnPipe(override val functions: Column => Boolean*) extends   Pipe[Column, Boolean]
   final case class FilterRowPipe(override val functions: Row => Boolean*) extends         Pipe[Row, Boolean]
 
-  sealed trait CSVSortOrder
+  sealed trait SortOrdering
 
-  final case object Ascending  extends CSVSortOrder
-  final case object Descending extends CSVSortOrder
+
+  object SortOrdering {
+    final case object Asc  extends SortOrdering
+    final case object Desc extends SortOrdering
+
+    private[csv] def fromSortOrder(sortOrder: SortOrdering): (Ordering[Header], Ordering[Cell]) = {
+      val ascendingHeaders: Ordering[Header] = (a, b) => a.value.compareTo(b.value)
+      val ascendingCells: Ordering[Cell] = (a, b) => a.header.value.compareTo(b.value)
+      sortOrder match {
+        case Asc  => (ascendingHeaders, ascendingCells)
+        case Desc => (ascendingHeaders.reverse, ascendingCells.reverse)
+      }
+
+    }
+
+    private[csv] def defineHeadersOrdering(colName: String, ordering: SortOrdering): Ordering[Row] = {
+      val rowOrdering: Ordering[Row] = (a, b) => {
+        (for {
+          aVal <- a.cells.find(_.header.value == colName)
+          bVal <- b.cells.find(_.header.value == colName)
+        } yield aVal.value.compareTo(bVal.value)).fold(0)(identity)
+      }
+      ordering match {
+        case Asc  => rowOrdering
+        case Desc => rowOrdering.reverse
+      }
+    }
+
+  }
 
 }
