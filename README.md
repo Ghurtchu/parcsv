@@ -1,6 +1,6 @@
 `parcsv` is a parser which treats CSV files as tabular dataframes enabling you to manipulate them fairly easily.
 
-parcsv uses `Either[Throwable, CSV]` Monad to enable you to do functional style CSV processing.
+parcsv is based on `Either[Throwable, CSV]` to enable you to do functional style CSV processing.
 
 Typical flow:
  - Read CSV from different sources (File, Raw String, Map etc..)
