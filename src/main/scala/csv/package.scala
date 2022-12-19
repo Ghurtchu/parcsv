@@ -163,10 +163,6 @@ package object csv {
 
   }
 
-//  implicit class VectorPipelineOps(self: Vector[Pipeline]) {
-//    def ~>(that: Pipeline): Vector[Pipeline] = self :+ that
-//  }
-
   implicit class SeqPipelineOps(selves: Seq[UntypedPipe]) {
     def ~>(that: UntypedPipe): Seq[UntypedPipe] = selves :+ that
     def ++(them: Seq[UntypedPipe]): Seq[UntypedPipe] = selves ++ them
@@ -189,7 +185,6 @@ package object csv {
 
   sealed trait SortOrdering
 
-
   object SortOrdering {
     final case object Asc  extends SortOrdering
     final case object Desc extends SortOrdering
@@ -197,26 +192,25 @@ package object csv {
     private[csv] def fromSortOrder(sortOrder: SortOrdering): (Ordering[Header], Ordering[Cell]) = {
       val ascendingHeaders: Ordering[Header] = (a, b) => a.value.compareTo(b.value)
       val ascendingCells: Ordering[Cell] = (a, b) => a.header.value.compareTo(b.value)
+
       sortOrder match {
         case Asc  => (ascendingHeaders, ascendingCells)
         case Desc => (ascendingHeaders.reverse, ascendingCells.reverse)
       }
-
     }
 
     private[csv] def defineHeadersOrdering(colName: String, ordering: SortOrdering, isNumeric: Boolean = false): Ordering[Row] = {
       val rowOrdering: Ordering[Row] = (a, b) => {
         (for {
-          aVal <- a.cells.find(_.header.value == colName)
-          bVal <- b.cells.find(_.header.value == colName)
-        } yield {
-          if (isNumeric) {
-            aVal.value.toDouble.compareTo(bVal.value.toDouble)
-          } else {
-            aVal.value.compareTo(bVal.value)
+          aVal      <- a.cells.find(_.header.value == colName)
+          bVal      <- b.cells.find(_.header.value == colName)
+          ordering  <- Option {
+            if (isNumeric) aVal.value.toDouble.compareTo(bVal.value.toDouble)
+            else aVal.value.compareTo(bVal.value)
           }
-        }).fold(0)(identity)
+        } yield ordering).fold(0)(identity)
       }
+
       ordering match {
         case Asc  => rowOrdering
         case Desc => rowOrdering.reverse

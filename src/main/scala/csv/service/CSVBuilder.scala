@@ -15,12 +15,12 @@ private[csv] object CSVBuilder {
     Try(new CSV(extractHeaders(csvContent), extractRows(csvContent))).toEither
 
   def fromFile(path: String): Either[Throwable, CSV] =
-    fromFile(ReadFrom.path(path))
+    fromFile(ReadSource.path(path))
 
   def fromFile(file: File): Either[Throwable, CSV] =
-    fromFile(ReadFrom.file(file))
+    fromFile(ReadSource.file(file))
 
-  private def fromFile(readFrom: ReadFrom): Either[Throwable, CSV] = Try {
+  private def fromFile(readFrom: ReadSource): Either[Throwable, CSV] = Try {
     val src = readFrom.foldMap(read, read)
     val csvContent = src.mkString.replace("\r", "")
     src.close()
@@ -105,21 +105,19 @@ private[csv] object CSVBuilder {
 
   private def isComplexString(line: String) = !line.startsWith(",") && !line.endsWith(",")
 
-
-  private[csv] sealed trait ReadFrom { self =>
+  private[csv] sealed trait ReadSource { self =>
     def foldMap(fileF: File => Source, pathF: String => Source): Source = self match {
-      case ReadFrom.FromFile(f) => fileF(f)
-      case ReadFrom.FromPath(p) => pathF(p)
+      case ReadSource.FromFile(f) => fileF(f)
+      case ReadSource.FromPath(p) => pathF(p)
     }
   }
 
-  private[csv] object ReadFrom {
-    final case class FromFile(file: File)   extends ReadFrom
-    final case class FromPath(path: String) extends ReadFrom
+  private[csv] object ReadSource {
+    final case class FromFile(file: File)   extends ReadSource
+    final case class FromPath(path: String) extends ReadSource
 
     def file(file: File): FromFile = FromFile(file)
     def path(path: String): FromPath = FromPath(path)
   }
-
 
 }
