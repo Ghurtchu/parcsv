@@ -1,6 +1,5 @@
 package com.ghurtchu
 
-import java.nio.MappedByteBuffer
 import scala.util.Try
 
 package object csv {
